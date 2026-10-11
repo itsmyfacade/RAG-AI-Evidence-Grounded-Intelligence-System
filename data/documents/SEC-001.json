@@ -1,0 +1,8 @@
+{
+  "document_id": "SEC-001",
+  "title": "Access Control Policy",
+  "category": "security",
+  "version": "2.1",
+  "classification": "internal",
+  "content": "Production systems must follow least-privilege access. Service credentials should have only necessary permissions. Secrets must not be committed to source control. Authorization failures must be investigated using audit logs and role assignments."
+}

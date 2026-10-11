@@ -1,0 +1,8 @@
+{
+  "document_id": "DATA-002",
+  "title": "Schema Evolution",
+  "category": "data",
+  "version": "1.0",
+  "classification": "internal",
+  "content": "Purpose: Schema Evolution.\n\nTechnical details: Schema changes should preserve compatibility where possible. Producers and consumers must validate field types, optionality, and version expectations.\n\nOperational guidance: Use contract tests and controlled rollout procedures.\n\nInvestigation evidence: Record affected services, timestamps, correlation identifiers, observed behavior, expected behavior, recent changes, and reproducible diagnostic steps.\n\nVerification: Compare outcomes against documented requirements. Do not claim a root cause without supporting evidence. Document unresolved uncertainty and recommended follow-up."
+}

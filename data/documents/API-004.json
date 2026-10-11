@@ -1,0 +1,8 @@
+{
+  "document_id": "API-004",
+  "title": "API Error Contract",
+  "category": "api",
+  "version": "1.0",
+  "classification": "internal",
+  "content": "Purpose: API Error Contract.\n\nTechnical details: The API returns structured errors containing code, message, request_id, and timestamp. HTTP 400 indicates invalid input, 401 authentication failure, 403 authorization failure, 429 throttling, and 5xx server errors.\n\nOperational guidance: Troubleshooting should preserve request_id, status code, endpoint, time, and a sanitized request sample.\n\nInvestigation evidence: Record affected services, timestamps, correlation identifiers, observed behavior, expected behavior, recent changes, and reproducible diagnostic steps.\n\nVerification: Compare outcomes against documented requirements. Do not claim a root cause without supporting evidence. Document unresolved uncertainty and recommended follow-up."
+}

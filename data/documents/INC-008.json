@@ -1,0 +1,8 @@
+{
+  "document_id": "INC-008",
+  "title": "Credential Scope Regression",
+  "category": "incident",
+  "version": "1.0",
+  "classification": "internal",
+  "content": "Purpose: Credential Scope Regression.\n\nTechnical details: A partner's read-only token lost its reporting scope after a configuration deployment. Authentication succeeded but reporting requests returned HTTP 403.\n\nOperational guidance: The incident was resolved by restoring the approved scope and testing role mappings.\n\nInvestigation evidence: Record affected services, timestamps, correlation identifiers, observed behavior, expected behavior, recent changes, and reproducible diagnostic steps.\n\nVerification: Compare outcomes against documented requirements. Do not claim a root cause without supporting evidence. Document unresolved uncertainty and recommended follow-up."
+}

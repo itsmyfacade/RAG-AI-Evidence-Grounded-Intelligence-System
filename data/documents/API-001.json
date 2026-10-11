@@ -1,0 +1,8 @@
+{
+  "document_id": "API-001",
+  "title": "Reporting API Authentication",
+  "category": "api",
+  "version": "1.2",
+  "classification": "internal",
+  "content": "Reporting API requests require a valid bearer token and the reports:read scope. HTTP 401 indicates missing or invalid authentication. HTTP 403 indicates authentication succeeded but authorization was denied. Check token scopes, partner role assignments, and endpoint permissions."
+}

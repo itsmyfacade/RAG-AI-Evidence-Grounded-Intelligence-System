@@ -1,0 +1,8 @@
+{
+  "document_id": "SEC-002",
+  "title": "Secrets Management",
+  "category": "security",
+  "version": "1.0",
+  "classification": "internal",
+  "content": "Purpose: Secrets Management.\n\nTechnical details: Credentials and API tokens must be stored outside source code. Applications should use environment-based configuration or approved secret management services.\n\nOperational guidance: Logs must redact authorization headers, access tokens, passwords, and signing secrets.\n\nInvestigation evidence: Record affected services, timestamps, correlation identifiers, observed behavior, expected behavior, recent changes, and reproducible diagnostic steps.\n\nVerification: Compare outcomes against documented requirements. Do not claim a root cause without supporting evidence. Document unresolved uncertainty and recommended follow-up."
+}

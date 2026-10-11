@@ -1,0 +1,8 @@
+{
+  "document_id": "ARCH-003",
+  "title": "Reporting Data Flow",
+  "category": "architecture",
+  "version": "1.0",
+  "classification": "internal",
+  "content": "Purpose: Reporting Data Flow.\n\nTechnical details: Operational records flow through ingestion, validation, transformation, PostgreSQL storage, and reporting APIs.\n\nOperational guidance: Reconciliation checks each stage to isolate missing or inconsistent records.\n\nInvestigation evidence: Record affected services, timestamps, correlation identifiers, observed behavior, expected behavior, recent changes, and reproducible diagnostic steps.\n\nVerification: Compare outcomes against documented requirements. Do not claim a root cause without supporting evidence. Document unresolved uncertainty and recommended follow-up."
+}

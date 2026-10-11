@@ -1,0 +1,8 @@
+{
+  "document_id": "RUN-002",
+  "title": "Deployment Rollback",
+  "category": "runbook",
+  "version": "1.0",
+  "classification": "internal",
+  "content": "If a deployment introduces a severe regression, confirm the affected release and business impact. Obtain the required approval, restore the last known-good deployment, verify critical API workflows, and document the rollback and follow-up actions."
+}

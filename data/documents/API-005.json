@@ -1,0 +1,8 @@
+{
+  "document_id": "API-005",
+  "title": "Webhook Delivery Contract",
+  "category": "api",
+  "version": "1.0",
+  "classification": "internal",
+  "content": "Purpose: Webhook Delivery Contract.\n\nTechnical details: Webhook events contain event_id, event_type, created_at, and payload. Consumers should acknowledge successful receipt with HTTP 2xx and process repeated event_id values idempotently.\n\nOperational guidance: Retries can deliver duplicate events. Use event identifiers and processing records to prevent duplicate side effects.\n\nInvestigation evidence: Record affected services, timestamps, correlation identifiers, observed behavior, expected behavior, recent changes, and reproducible diagnostic steps.\n\nVerification: Compare outcomes against documented requirements. Do not claim a root cause without supporting evidence. Document unresolved uncertainty and recommended follow-up."
+}

@@ -1,0 +1,8 @@
+{
+  "document_id": "RUN-001",
+  "title": "API Incident Triage",
+  "category": "runbook",
+  "version": "2.0",
+  "classification": "internal",
+  "content": "Start with impact, affected partners, timestamps, recent changes, and correlation IDs. Reproduce the request safely. Compare successful and failing requests. Inspect HTTP status codes, authorization, configuration, logs, and downstream dependencies. Document evidence before escalation."
+}

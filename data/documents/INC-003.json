@@ -1,0 +1,8 @@
+{
+  "document_id": "INC-003",
+  "title": "Reporting Data Mismatch",
+  "category": "incident",
+  "version": "1.0",
+  "classification": "internal",
+  "content": "A reporting discrepancy was traced to inconsistent UTC date boundaries between an ETL pipeline and the Reporting API. Engineers compared source records, transformation rules, timestamps, and aggregation windows before correcting the transformation."
+}

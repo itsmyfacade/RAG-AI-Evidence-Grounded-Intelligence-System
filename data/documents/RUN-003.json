@@ -1,0 +1,8 @@
+{
+  "document_id": "RUN-003",
+  "title": "Webhook Troubleshooting",
+  "category": "runbook",
+  "version": "1.0",
+  "classification": "internal",
+  "content": "Purpose: Webhook Troubleshooting.\n\nTechnical details: Check event creation, delivery attempts, destination availability, signature verification, acknowledgment status, retries, and idempotency records.\n\nOperational guidance: Collect event_id, response status, attempt timestamps, and sanitized payload metadata.\n\nInvestigation evidence: Record affected services, timestamps, correlation identifiers, observed behavior, expected behavior, recent changes, and reproducible diagnostic steps.\n\nVerification: Compare outcomes against documented requirements. Do not claim a root cause without supporting evidence. Document unresolved uncertainty and recommended follow-up."
+}

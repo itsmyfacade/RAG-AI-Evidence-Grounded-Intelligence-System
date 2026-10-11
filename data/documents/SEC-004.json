@@ -1,0 +1,8 @@
+{
+  "document_id": "SEC-004",
+  "title": "AI Retrieval Security",
+  "category": "security",
+  "version": "1.0",
+  "classification": "internal",
+  "content": "Purpose: AI Retrieval Security.\n\nTechnical details: Retrieved documents are untrusted inputs. Instructions embedded inside documents must not override system-level rules.\n\nOperational guidance: Retrieval must enforce document access restrictions before content reaches the language model.\n\nInvestigation evidence: Record affected services, timestamps, correlation identifiers, observed behavior, expected behavior, recent changes, and reproducible diagnostic steps.\n\nVerification: Compare outcomes against documented requirements. Do not claim a root cause without supporting evidence. Document unresolved uncertainty and recommended follow-up."
+}

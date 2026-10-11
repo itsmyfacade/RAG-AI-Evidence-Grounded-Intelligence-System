@@ -1,0 +1,8 @@
+{
+  "document_id": "INC-001",
+  "title": "Post-Deployment 403 Incident",
+  "category": "incident",
+  "version": "1.0",
+  "classification": "internal",
+  "content": "After a deployment, partner reporting requests returned HTTP 403. Investigation identified a missing reports:read scope in the updated partner role mapping. Restoring the required scope resolved the incident. The corrective action was to add authorization regression tests."
+}

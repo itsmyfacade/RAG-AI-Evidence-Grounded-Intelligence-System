@@ -1,0 +1,8 @@
+{
+  "document_id": "INC-004",
+  "title": "Expired Signing Secret",
+  "category": "incident",
+  "version": "1.0",
+  "classification": "internal",
+  "content": "Purpose: Expired Signing Secret.\n\nTechnical details: Webhook signature verification failed after a secret rotation because a consumer retained the previous signing secret. Delivery attempts were rejected despite valid payloads.\n\nOperational guidance: The team synchronized secrets, verified signatures, and added a rotation checklist.\n\nInvestigation evidence: Record affected services, timestamps, correlation identifiers, observed behavior, expected behavior, recent changes, and reproducible diagnostic steps.\n\nVerification: Compare outcomes against documented requirements. Do not claim a root cause without supporting evidence. Document unresolved uncertainty and recommended follow-up."
+}
