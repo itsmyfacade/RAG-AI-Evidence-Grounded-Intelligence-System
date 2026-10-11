@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import threading
 import time
+from contextlib import asynccontextmanager
 from collections import defaultdict, deque
 from pathlib import Path
 
@@ -17,10 +18,17 @@ from src.settings import (
     get_settings,
 )
 from src.startup import diagnostics
+from src.startup import ensure_resources
 from src.sql_tools import OperationalEvidenceStore
 
 
-app = FastAPI(title="AEGIS", description="AI Evidence-Grounded Intelligence System", version="1.0.0")
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    ensure_resources()
+    yield
+
+
+app = FastAPI(title="AEGIS", description="AI Evidence-Grounded Intelligence System", version="1.0.0", lifespan=lifespan)
 _slots = threading.BoundedSemaphore(get_settings().demo_max_concurrency)
 _rate_lock = threading.Lock()
 _rate_history: dict[str, deque[float]] = defaultdict(deque)

@@ -81,9 +81,10 @@ function filterSamples() {
 }
 
 async function loadSamples() {
-  const response = await fetch("/samples");
-  if (!response.ok) throw new Error("Sample scenarios are unavailable. Check /ready.");
-  state.samples = await response.json();
+  const response = await fetchWithTimeout("/samples", {}, 10000);
+  const data = await readResponse(response);
+  if (!response.ok) throw new Error(data.detail || "Sample scenarios are temporarily unavailable. Please retry.");
+  state.samples = Array.isArray(data) ? data : [];
   state.filtered = state.samples;
   populateSelect(state.samples);
   setText("sample-count", `${state.samples.length} scenarios available`);
@@ -94,12 +95,12 @@ async function investigate() {
   button.disabled = true;
   setText("status", "Running…");
   try {
-    const response = await fetch("/investigate", {
+    const response = await fetchWithTimeout("/investigate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ scenario_id: $("scenario").value, question: $("question").value }),
-    });
-    const data = await response.json();
+    }, 45000);
+    const data = await readResponse(response);
     if (!response.ok) throw new Error(data.detail || "Investigation failed. Check the request and service readiness.");
     const report = data.report;
     setText("status", report.status);
@@ -115,13 +116,42 @@ async function investigate() {
     renderTrace(report.agent_trace);
   } catch (error) {
     setText("status", "error");
-    setText("summary", error.message);
+    setText("summary", friendlyError(error));
   } finally {
     button.disabled = false;
   }
 }
 
+async function fetchWithTimeout(url, options, timeoutMs) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function readResponse(response) {
+  const text = await response.text();
+  if (!text.trim()) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`The service returned an incomplete response (HTTP ${response.status}). Please retry.`);
+  }
+}
+
+function friendlyError(error) {
+  if (error.name === "AbortError") return "The investigation timed out. The demo may be restarting; please retry.";
+  if (error instanceof TypeError) return "The demo service could not be reached. Please retry in a moment.";
+  return error.message || "The investigation could not be completed. Please retry.";
+}
+
 $("filter").addEventListener("input", filterSamples);
 $("scenario").addEventListener("change", updateQuestion);
 $("run").addEventListener("click", investigate);
-loadSamples().catch((error) => setText("summary", error.message));
+loadSamples().catch((error) => {
+  setText("status", "error");
+  setText("summary", friendlyError(error));
+});

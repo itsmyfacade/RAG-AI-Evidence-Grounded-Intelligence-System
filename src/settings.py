@@ -15,6 +15,7 @@ load_dotenv(ROOT / ".env", override=False)
 
 class Settings(BaseModel):
     root: Path = ROOT
+    deployment_profile: str = "standard"
     dataset_path: Path = ROOT / "data" / "documents"
     database_path: Path = ROOT / "data" / "aegis.db"
     vector_store_path: Path = ROOT
@@ -41,6 +42,14 @@ class Settings(BaseModel):
             raise ValueError("llm_mode must be local, gemini, or bedrock")
         return value
 
+    @field_validator("deployment_profile")
+    @classmethod
+    def validate_deployment_profile(cls, value: str) -> str:
+        value = value.lower()
+        if value not in {"standard", "lite"}:
+            raise ValueError("deployment_profile must be standard or lite")
+        return value
+
     @field_validator("embeddings_mode")
     @classmethod
     def validate_embeddings_mode(cls, value: str) -> str:
@@ -57,6 +66,7 @@ class Settings(BaseModel):
             return candidate if candidate.is_absolute() else ROOT / candidate
 
         return cls(
+            deployment_profile=os.getenv("AEGIS_DEPLOYMENT_PROFILE", "standard"),
             dataset_path=path("AEGIS_DATASET_PATH", ROOT / "data" / "documents"),
             database_path=path("AEGIS_DATABASE_PATH", ROOT / "data" / "aegis.db"),
             vector_store_path=path("AEGIS_VECTOR_STORE_PATH", ROOT),
@@ -85,6 +95,8 @@ def provider_status() -> dict[str, str | bool]:
     configuration = get_settings()
     return {
         "llm_mode": configuration.llm_mode,
+        "deployment_profile": configuration.deployment_profile,
+        "retrieval_mode": "lexical" if configuration.deployment_profile == "lite" else "chroma",
         "embeddings_mode": configuration.embeddings_mode,
         "bedrock_model_id": configuration.bedrock_model_id,
         "bedrock_embedding_model_id": configuration.bedrock_embedding_model_id,
