@@ -22,14 +22,17 @@ class Settings(BaseModel):
     llm_mode: str = "local"
     embeddings_mode: str = "local"
     embedding_model: str = "all-MiniLM-L6-v2"
+    embedding_local_files_only: bool = True
     gemini_model: str = "gemini-3.5-flash"
     aws_region: str = "us-east-2"
     bedrock_model_id: str = "amazon.nova-micro-v1:0"
+    bedrock_inference_profile: str = "us.amazon.nova-micro-v1:0"
     bedrock_embedding_model_id: str = "amazon.titan-embed-text-v2:0"
     retrieval_k: int = Field(default=4, ge=1, le=20)
     retrieval_score_threshold: float = Field(default=0.0, ge=0.0, le=1.0)
     provider_timeout_seconds: int = Field(default=30, ge=1, le=300)
     max_output_tokens: int = Field(default=500, ge=32, le=4096)
+    bedrock_max_tokens: int = Field(default=1200, ge=32, le=4096)
     max_agent_attempts: int = Field(default=2, ge=1, le=5)
     demo_max_concurrency: int = Field(default=2, ge=1, le=32)
     demo_requests_per_minute: int = Field(default=20, ge=1, le=1000)
@@ -60,6 +63,10 @@ class Settings(BaseModel):
 
     @classmethod
     def from_environment(cls) -> "Settings":
+        def boolean(name: str, default: bool) -> bool:
+            value = os.getenv(name)
+            return default if value is None else value.lower() in {"1", "true", "yes", "on"}
+
         def path(name: str, default: Path) -> Path:
             value = os.getenv(name)
             candidate = Path(value) if value else default
@@ -73,14 +80,17 @@ class Settings(BaseModel):
             llm_mode=os.getenv("AEGIS_LLM", "local"),
             embeddings_mode=os.getenv("AEGIS_EMBEDDINGS", "local"),
             embedding_model=os.getenv("AEGIS_EMBEDDING_MODEL", "all-MiniLM-L6-v2"),
+            embedding_local_files_only=boolean("AEGIS_EMBEDDING_LOCAL_FILES_ONLY", True),
             gemini_model=os.getenv("AEGIS_GEMINI_MODEL", "gemini-3.5-flash"),
             aws_region=os.getenv("AWS_REGION", "us-east-2"),
             bedrock_model_id=os.getenv("AEGIS_BEDROCK_MODEL_ID", "amazon.nova-micro-v1:0"),
+            bedrock_inference_profile=os.getenv("AEGIS_BEDROCK_INFERENCE_PROFILE", "us.amazon.nova-micro-v1:0"),
             bedrock_embedding_model_id=os.getenv("AEGIS_BEDROCK_EMBEDDING_MODEL_ID", "amazon.titan-embed-text-v2:0"),
             retrieval_k=int(os.getenv("AEGIS_RETRIEVAL_K", "4")),
             retrieval_score_threshold=float(os.getenv("AEGIS_RETRIEVAL_SCORE_THRESHOLD", "0")),
             provider_timeout_seconds=int(os.getenv("AEGIS_PROVIDER_TIMEOUT_SECONDS", "30")),
             max_output_tokens=int(os.getenv("AEGIS_MAX_OUTPUT_TOKENS", "500")),
+            bedrock_max_tokens=int(os.getenv("AEGIS_BEDROCK_MAX_TOKENS", "1200")),
             max_agent_attempts=int(os.getenv("AEGIS_MAX_AGENT_ATTEMPTS", "2")),
             demo_max_concurrency=int(os.getenv("AEGIS_DEMO_MAX_CONCURRENCY", "2")),
             demo_requests_per_minute=int(os.getenv("AEGIS_DEMO_REQUESTS_PER_MINUTE", "20")),
@@ -99,6 +109,8 @@ def provider_status() -> dict[str, str | bool]:
         "retrieval_mode": "lexical" if configuration.deployment_profile == "lite" else "chroma",
         "embeddings_mode": configuration.embeddings_mode,
         "bedrock_model_id": configuration.bedrock_model_id,
+        "bedrock_inference_profile": configuration.bedrock_inference_profile,
+        "bedrock_max_tokens": configuration.bedrock_max_tokens,
         "bedrock_embedding_model_id": configuration.bedrock_embedding_model_id,
         "gemini_key_configured": bool(os.getenv("GEMINI_API_KEY")),
         "aws_region_configured": bool(configuration.aws_region),

@@ -9,3 +9,9 @@ data/*.db
 *.zip
 *.log
 data/evaluation/results/
+.pytest_runtime
+.mypy_cache
+.coverage
+.vscode
+data/manifests/
+frontend/.cache/

@@ -14,7 +14,13 @@ button { background:#38bdf8; border:0; color:#062033; font-weight:700; border-ra
 .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
 .panel { border-top:1px solid #33465d; padding-top:.75rem; } .panel-wide { grid-column:1/-1; }
 li { margin:.4rem 0; }
+.finding { border:1px solid #33465d; border-left:4px solid #7dd3fc; border-radius:8px; padding:.75rem; margin:.6rem 0; background:#0d141e; }
+.finding-hypothesis { border-left-color:#fbbf24; } .finding-conclusion { border-left-color:#86efac; }
+.finding-heading { display:flex; justify-content:space-between; gap:.5rem; text-transform:capitalize; }
+.finding p { margin:.5rem 0; } .finding small { color:#a9bacb; word-break:break-word; }
 .evidence-card { border:1px solid #33465d; border-radius:8px; padding:.7rem; margin:.5rem 0; background:#0d141e; }
+.evidence-card summary { cursor:pointer; } .evidence-card summary::marker { color:#7dd3fc; }
 .evidence-card span { display:block; color:#a9bacb; font-size:.85rem; margin-top:.2rem; }
 .evidence-card p { white-space:pre-wrap; margin:.5rem 0 0; }
+.trace-completed { color:#cbd5e1; } .trace-failed { color:#fca5a5; } .trace-skipped { color:#fcd34d; }
 @media(max-width:700px) { .app { padding:1rem; } .control-row,.grid { grid-template-columns:1fr; } .panel-wide { grid-column:auto; } }

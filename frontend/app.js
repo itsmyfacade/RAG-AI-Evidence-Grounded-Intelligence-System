@@ -25,15 +25,17 @@ function renderEvidence(records) {
   const target = $("evidence");
   target.replaceChildren();
   for (const record of records || []) {
-    const card = document.createElement("article");
+    const card = document.createElement("details");
     card.className = "evidence-card";
+    const summary = document.createElement("summary");
     const heading = document.createElement("strong");
     heading.textContent = `${record.evidence_id} · ${record.source_type}`;
+    summary.appendChild(heading);
     const source = document.createElement("span");
     source.textContent = `Source: ${record.source_id}`;
     const excerpt = document.createElement("p");
     excerpt.textContent = record.excerpt || JSON.stringify(record.value || {});
-    card.append(heading, source, excerpt);
+    card.append(summary, source, excerpt);
     target.appendChild(card);
   }
   if (!records || records.length === 0) {
@@ -41,11 +43,40 @@ function renderEvidence(records) {
   }
 }
 
+function renderFindings(findings) {
+  const target = $("findings");
+  target.replaceChildren();
+  for (const finding of findings || []) {
+    const card = document.createElement("article");
+    card.className = `finding finding-${finding.status}`;
+    const heading = document.createElement("div");
+    heading.className = "finding-heading";
+    const label = document.createElement("strong");
+    const statusLabels = {
+      observation: "Observed fact",
+      hypothesis: "Plausible hypothesis",
+      conclusion: "Evidence-supported conclusion",
+    };
+    label.textContent = `${finding.finding_id} · ${statusLabels[finding.status] || "Unrecognized status"}`;
+    heading.appendChild(label);
+    const statement = document.createElement("p");
+    statement.textContent = finding.statement;
+    const refs = document.createElement("small");
+    refs.textContent = finding.evidence_refs?.length
+      ? `Evidence: ${finding.evidence_refs.join(", ")}`
+      : "Evidence: none recorded";
+    card.append(heading, statement, refs);
+    target.appendChild(card);
+  }
+  if (!findings || findings.length === 0) target.textContent = "No structured findings were emitted.";
+}
+
 function renderTrace(trace) {
   const target = $("trace");
   target.replaceChildren();
   for (const entry of trace || []) {
     const row = document.createElement("li");
+    row.className = `trace-${entry.status}`;
     row.textContent = `${entry.step}: ${entry.status} — ${entry.detail}`;
     target.appendChild(row);
   }
@@ -106,9 +137,9 @@ async function investigate() {
     setText("status", report.status);
     setText("status-badge", report.status);
     setText("provider", `${report.provider} · ${data.mode || "local"}`);
+    setText("retrieval", `retrieval=${report.retrieval_mode || "unknown"}`);
     setText("summary", report.summary);
-    renderList("findings", report.findings, (item) => `${item.finding_id}: ${item.statement}`);
-    renderList("hypotheses", report.hypotheses, (item) => item);
+    renderFindings(report.findings);
     renderList("checks", report.recommended_checks, (item) => item);
     renderList("contradictions", report.contradictions, (item) => item);
     renderList("gaps", report.evidence_gaps, (item) => item);

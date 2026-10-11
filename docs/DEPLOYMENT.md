@@ -65,8 +65,18 @@ profile and the full `requirements.txt` installation.
 The public sample mode does not require Gemini or Bedrock. A Gemini deployment
 requires `GEMINI_API_KEY` and explicit `AEGIS_LLM=gemini`; it should be quota
 limited and monitored. Bedrock requires an AWS execution role, supported
-region/model access, and separately authorized live verification. This repo does
-not provision resources, change IAM, or claim successful Bedrock inference.
+region/model access, `AEGIS_LLM=bedrock`, `AWS_REGION`, and
+`AEGIS_BEDROCK_INFERENCE_PROFILE=us.amazon.nova-micro-v1:0`. This repo does not
+provision resources, change IAM, or run live Bedrock inference automatically.
+The Bedrock provider uses LangChain `ChatBedrockConverse`, returns the selected
+profile and token usage when available, and treats provider errors as controlled
+failure states rather than silently switching to local output.
+
+For an authorized live Bedrock test, set `AEGIS_LLM=bedrock`, keep the verified
+profile `us.amazon.nova-micro-v1:0`, and set `AEGIS_BEDROCK_MAX_TOKENS=1200`.
+The provider records cumulative input/output usage across the initial request
+and its single formatting-repair attempt. The Render Free local demo should
+remain `AEGIS_LLM=local`; it does not install the Bedrock SDK in its lite image.
 
 ## Memory and cold starts
 

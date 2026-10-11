@@ -7,7 +7,8 @@ from src.settings import get_settings
 class LocalEmbeddings(Embeddings):
     def __init__(self):
         from sentence_transformers import SentenceTransformer
-        self.model = SentenceTransformer(get_settings().embedding_model)
+        configuration = get_settings()
+        self.model = SentenceTransformer(configuration.embedding_model, local_files_only=configuration.embedding_local_files_only)
 
     def embed_documents(self, texts):
         return self.model.encode(texts, normalize_embeddings=True).tolist()
