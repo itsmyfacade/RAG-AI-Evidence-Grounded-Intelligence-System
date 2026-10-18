@@ -18,6 +18,7 @@ from src.data_schemas import (
     SupportTicketRecord,
     WebhookEventRecord,
 )
+from src.scenario_catalog import public_title
 
 
 VALIDATORS = {
@@ -33,26 +34,26 @@ VALIDATORS = {
 
 
 SCENARIOS = [
-    ("403_SCOPE", "HTTP 403 after deployment caused by a missing reports:read scope", "authorization"),
-    ("401_TOKEN", "HTTP 401 caused by an expired partner token", "authentication"),
-    ("429_LIMIT", "HTTP 429 caused by partner rate limiting", "rate_limit"),
-    ("WEBHOOK_DELAY", "Webhook delivery delay caused by slow acknowledgements", "webhook"),
-    ("DUP_EVENT", "Duplicate webhook processing caused by missing idempotency", "webhook"),
-    ("API_VERSION", "API version incompatibility rejected a partner payload", "compatibility"),
-    ("SECRET_ROTATION", "Webhook failures followed credential rotation", "credentials"),
-    ("REPORTING_DRIFT", "Reporting totals diverged after a UTC boundary change", "data_quality"),
-    ("CONFIG_DRIFT", "Sandbox and production configuration diverged", "configuration"),
-    ("DEPLOY_REGRESSION", "A deployment removed a frequently used database index", "deployment"),
-    ("EVENT_DELAY", "Event delivery was delayed by a saturated retry queue", "webhook"),
-    ("RECONCILIATION", "Source and destination record counts diverged", "data_quality"),
-    ("ONBOARDING", "Partner onboarding failed because an endpoint was not allowlisted", "onboarding"),
-    ("OAUTH_SCOPE", "OAuth scope mapping changed during role configuration", "authorization"),
-    ("DLQ_SCHEMA", "A nullable field caused destination schema rejection", "compatibility"),
-    ("ACCESS_AUDIT", "An access audit found an overprivileged service role", "security"),
-    ("LATENCY", "A reporting query crossed its latency budget", "performance"),
-    ("MISSING_LOGS", "Correlation logs were absent for a subset of requests", "observability"),
-    ("TICKET_CONFLICT", "Support reports conflicted with deployment timestamps", "investigation"),
-    ("PARTNER_REPLAY", "A safe replay corrected delayed partner events", "recovery"),
+    ("403_SCOPE", public_title("SCN-001"), "authorization"),
+    ("401_TOKEN", public_title("SCN-002"), "authentication"),
+    ("429_LIMIT", public_title("SCN-003"), "rate_limit"),
+    ("WEBHOOK_DELAY", public_title("SCN-004"), "webhook"),
+    ("DUP_EVENT", public_title("SCN-005"), "webhook"),
+    ("API_VERSION", public_title("SCN-006"), "compatibility"),
+    ("SECRET_ROTATION", public_title("SCN-007"), "credentials"),
+    ("REPORTING_DRIFT", public_title("SCN-008"), "data_quality"),
+    ("CONFIG_DRIFT", public_title("SCN-009"), "configuration"),
+    ("DEPLOY_REGRESSION", public_title("SCN-010"), "deployment"),
+    ("EVENT_DELAY", public_title("SCN-011"), "webhook"),
+    ("RECONCILIATION", public_title("SCN-012"), "data_quality"),
+    ("ONBOARDING", public_title("SCN-013"), "onboarding"),
+    ("OAUTH_SCOPE", public_title("SCN-014"), "authorization"),
+    ("DLQ_SCHEMA", public_title("SCN-015"), "compatibility"),
+    ("ACCESS_AUDIT", public_title("SCN-016"), "security"),
+    ("LATENCY", public_title("SCN-017"), "performance"),
+    ("MISSING_LOGS", public_title("SCN-018"), "observability"),
+    ("TICKET_CONFLICT", public_title("SCN-019"), "investigation"),
+    ("PARTNER_REPLAY", public_title("SCN-020"), "recovery"),
 ]
 
 

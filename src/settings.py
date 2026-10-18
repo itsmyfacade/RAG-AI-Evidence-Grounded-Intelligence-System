@@ -33,7 +33,7 @@ class Settings(BaseModel):
     provider_timeout_seconds: int = Field(default=30, ge=1, le=300)
     max_output_tokens: int = Field(default=500, ge=32, le=4096)
     bedrock_max_tokens: int = Field(default=1200, ge=32, le=4096)
-    max_agent_attempts: int = Field(default=2, ge=1, le=5)
+    max_agent_attempts: int = Field(default=1, ge=1, le=5)
     demo_max_concurrency: int = Field(default=2, ge=1, le=32)
     demo_requests_per_minute: int = Field(default=20, ge=1, le=1000)
 
@@ -91,7 +91,7 @@ class Settings(BaseModel):
             provider_timeout_seconds=int(os.getenv("AEGIS_PROVIDER_TIMEOUT_SECONDS", "30")),
             max_output_tokens=int(os.getenv("AEGIS_MAX_OUTPUT_TOKENS", "500")),
             bedrock_max_tokens=int(os.getenv("AEGIS_BEDROCK_MAX_TOKENS", "1200")),
-            max_agent_attempts=int(os.getenv("AEGIS_MAX_AGENT_ATTEMPTS", "2")),
+            max_agent_attempts=int(os.getenv("AEGIS_MAX_AGENT_ATTEMPTS", "1")),
             demo_max_concurrency=int(os.getenv("AEGIS_DEMO_MAX_CONCURRENCY", "2")),
             demo_requests_per_minute=int(os.getenv("AEGIS_DEMO_REQUESTS_PER_MINUTE", "20")),
         )

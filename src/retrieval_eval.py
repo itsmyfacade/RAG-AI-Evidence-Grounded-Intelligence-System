@@ -29,11 +29,30 @@ def evaluate_cases(cases: list[dict], retriever, k: int = 4) -> dict[str, float]
     return {"Recall@k": sum(recalls) / count, "Hit@k": sum(hits) / count, "MRR": sum(mrrs) / count, "evidence_coverage": sum(coverage) / count}
 
 
+def scenario_retrieval_diagnostics(retriever, k: int = 4) -> dict:
+    """Return retrieval sets for all public scenarios without reading answer labels."""
+    from src.scenario_catalog import SCENARIO_PRESENTATION, public_question
+
+    results = []
+    for scenario_id in SCENARIO_PRESENTATION:
+        documents = retriever(public_question(scenario_id), k=k)
+        results.append({
+            "scenario_id": scenario_id,
+            "document_ids": [document.metadata["document_id"] for document in documents],
+        })
+    distinct_sets = {tuple(item["document_ids"]) for item in results}
+    return {"distinct_retrieved_sets": len(distinct_sets), "scenarios": results}
+
+
 if __name__ == "__main__":
     import argparse
     from src.rag import search
     parser = argparse.ArgumentParser()
     parser.add_argument("--k", type=int, default=4)
+    parser.add_argument("--all-scenarios", action="store_true")
     args = parser.parse_args()
     cases = json.loads((Path(__file__).resolve().parents[1] / "data" / "evaluation" / "retrieval_cases.json").read_text(encoding="utf-8"))
-    print(json.dumps(evaluate_cases(cases, search, k=args.k), indent=2))
+    result = evaluate_cases(cases, search, k=args.k)
+    if args.all_scenarios:
+        result["scenario_retrieval"] = scenario_retrieval_diagnostics(search, k=args.k)
+    print(json.dumps(result, indent=2))

@@ -6,6 +6,7 @@ import json
 import sqlite3
 
 from src.dataset import generate_database, validate_database
+from src.scenario_catalog import public_title
 from src.settings import get_settings, provider_status
 
 
@@ -19,7 +20,9 @@ def ensure_resources() -> dict[str, bool]:
             with sqlite3.connect(configuration.database_path) as connection:
                 scenario_columns = {row[1] for row in connection.execute("PRAGMA table_info(scenarios)")}
                 incident_columns = {row[1] for row in connection.execute("PRAGMA table_info(incidents)")}
-            needs_generation = scenario_columns != {"scenario_id", "title", "domain", "created_at"} or incident_columns != {"incident_id", "scenario_id", "partner_id", "service", "opened_at", "resolved_at", "observed_status"}
+                title_rows = connection.execute("SELECT scenario_id, title FROM scenarios").fetchall()
+                titles_current = len(title_rows) == 20 and all(row[1] == public_title(row[0]) for row in title_rows)
+            needs_generation = scenario_columns != {"scenario_id", "title", "domain", "created_at"} or incident_columns != {"incident_id", "scenario_id", "partner_id", "service", "opened_at", "resolved_at", "observed_status"} or not titles_current
         except sqlite3.Error:
             needs_generation = True
     if needs_generation:
