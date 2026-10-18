@@ -29,7 +29,7 @@ AEGIS_EMBEDDINGS=local
 AEGIS_DATASET_PATH=data/documents
 AEGIS_DATABASE_PATH=data/aegis.db
 AEGIS_VECTOR_STORE_PATH=.
-AEGIS_MAX_AGENT_ATTEMPTS=2
+AEGIS_MAX_AGENT_ATTEMPTS=1
 AEGIS_DEMO_MAX_CONCURRENCY=1
 AEGIS_DEMO_REQUESTS_PER_MINUTE=10
 AEGIS_PROVIDER_TIMEOUT_SECONDS=30
@@ -75,7 +75,9 @@ failure states rather than silently switching to local output.
 For an authorized live Bedrock test, set `AEGIS_LLM=bedrock`, keep the verified
 profile `us.amazon.nova-micro-v1:0`, and set `AEGIS_BEDROCK_MAX_TOKENS=1200`.
 The provider records cumulative input/output usage across the initial request
-and its single formatting-repair attempt. The Render Free local demo should
+and its single formatting-repair attempt. The LangGraph demo performs one
+bounded investigation pass; it does not repeat identical research after an
+insufficient-evidence result. The Render Free local demo should
 remain `AEGIS_LLM=local`; it does not install the Bedrock SDK in its lite image.
 
 ## Memory and cold starts

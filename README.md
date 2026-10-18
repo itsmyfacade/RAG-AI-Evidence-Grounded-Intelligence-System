@@ -1,4 +1,6 @@
-# AEGIS — AI Evidence-Grounded Intelligence System
+# AEGIS - AI Evidence-Grounded Intelligence System
+
+[![CI](https://github.com/itsmyfacade/RAG-AI-Evidence-Grounded-Intelligence-System/actions/workflows/ci.yml/badge.svg)](https://github.com/itsmyfacade/RAG-AI-Evidence-Grounded-Intelligence-System/actions/workflows/ci.yml)
 
 AEGIS is an incident-investigation application for tracing technical failures across documentation and structured operational evidence. I built it to demonstrate a practical RAG system that makes citations, uncertainty, and missing evidence visible instead of presenting an unsupported model answer as a root-cause certification.
 
@@ -13,8 +15,8 @@ The public demo uses `AEGIS_DEPLOYMENT_PROFILE=lite` and `AEGIS_LLM=local`. It i
 ```mermaid
 flowchart LR
     U[FastAPI request] --> S[Supervisor and planner]
-    S --> D[Document research agent]
-    S --> O[Operations analysis agent]
+    S --> D[Document research node]
+    S --> O[Operations analysis node]
     D --> R[Chroma or lite lexical retrieval]
     O --> Q[Read-only parameterized SQLite tools]
     R --> I[Investigation synthesis]
@@ -24,7 +26,7 @@ flowchart LR
     F --> API[FastAPI response and demo UI]
 ```
 
-An investigation request passes through a bounded LangGraph workflow: the supervisor plans work, document research retrieves technical passages, operations analysis queries SQLite, synthesis uses the configured provider, and verification validates evidence identity and claim support. The system distinguishes observations, hypotheses, documented causes, and operational confirmation.
+An investigation request passes through one bounded, sequential LangGraph workflow: a supervisor selects the work, document research retrieves technical passages, operations analysis queries SQLite, synthesis uses the configured provider, and verification validates evidence identity and claim support. The research and verification stages are deterministic workflow nodes; only the configured synthesis provider performs model inference. The system distinguishes observations, hypotheses, documented causes, and operational confirmation.
 
 ## Technology and data
 
@@ -100,16 +102,16 @@ If the embedding model is not cached, download it once in an environment with Hu
 
 ## API and demo
 
-- `GET /health` — process health
-- `GET /ready` — data and active-profile readiness
-- `GET /samples` — allowlisted synthetic scenarios
-- `POST /investigate` — structured investigation report
-- `GET /demo/` — frontend investigation interface
+- `GET /health` - process health
+- `GET /ready` - data and active-profile readiness
+- `GET /samples` - allowlisted synthetic scenarios
+- `POST /investigate` - structured investigation report
+- `GET /demo/` - frontend investigation interface
 
-Example request:
+Example request (the demo supplies a symptom-oriented question):
 
 ```powershell
-$body = @{ scenario_id = "SCN-005"; question = "Why did duplicate webhook events occur?" } | ConvertTo-Json
+$body = @{ scenario_id = "SCN-005"; question = "Investigate repeated webhook deliveries and duplicate downstream records. Do not assume a root cause." } | ConvertTo-Json
 Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:8000/investigate" -ContentType "application/json" -Body $body
 ```
 
@@ -123,7 +125,7 @@ The hosted Render demo remains local-only and does not require AWS credentials. 
 
 ## Tests and CI
 
-Normal tests are offline and do not call Bedrock, Gemini, S3, IAM, or Hugging Face. The root suite currently collects 46 tests. The repository's Python 3.12 CI target is the compatibility baseline; in the available Python 3.14 virtualenv, 45 tests pass offline and the Sentence Transformers initialization test is blocked by the local dependency import hanging before the test body. That blocked local check is not represented as a passing result.
+Normal tests are offline and do not call Bedrock, Gemini, S3, IAM, or Hugging Face. Python 3.12 in GitHub Actions and Docker is the compatibility baseline. Standard vector retrieval is tested separately from the lite CI path because it requires a locally cached embedding model; the hosted demo does not require that model.
 
 ```powershell
 python -m compileall -q src tests generate_data.py aws_diagnostic.py
@@ -132,7 +134,7 @@ python -m ruff check src tests generate_data.py aws_diagnostic.py --select E4,E7
 node --check frontend/app.js
 ```
 
-The full scenario evaluator is separate from serving behavior and uses neutral questions:
+The full scenario evaluator is separate from serving behavior and uses the same symptom-oriented question builder as the demo:
 
 ```powershell
 $env:AEGIS_LLM="local"
@@ -140,7 +142,7 @@ $env:AEGIS_DEPLOYMENT_PROFILE="lite"
 python -m src.scenario_eval
 ```
 
-The evaluator compares evidence-derived runtime statuses with held-out labels; its 20/20 match is a synthetic consistency check, not a production accuracy benchmark.
+The evaluator compares evidence-derived runtime statuses with held-out labels; any match rate is a synthetic consistency check, not a diagnosis-accuracy benchmark. Expected labels are never loaded by the serving API or graph.
 
 GitHub Actions uses Python 3.12, the pinned full dependency manifest, offline/local environment variables, compilation, pytest, Ruff, and frontend syntax validation. Remote workflow success should be confirmed in GitHub; local results do not prove a remote run passed.
 
@@ -160,8 +162,8 @@ AEGIS is an engineering demonstration, not a production incident-management syst
 
 ## Project guides
 
-- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — Docker and Render deployment boundaries
-- [`docs/HANDS_ON.md`](docs/HANDS_ON.md) — interview-oriented verification exercises
-- [`docs/DOMAIN_ONTOLOGY.md`](docs/DOMAIN_ONTOLOGY.md) — lightweight data relationships
-- [`docs/AGENTCORE.md`](docs/AGENTCORE.md) — optional AgentCore compatibility guidance
-- [`docs/GOVCLOUD.md`](docs/GOVCLOUD.md) — GovCloud architecture considerations
+- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) - Docker and Render deployment boundaries
+- [`docs/HANDS_ON.md`](docs/HANDS_ON.md) - interview-oriented verification exercises
+- [`docs/DOMAIN_ONTOLOGY.md`](docs/DOMAIN_ONTOLOGY.md) - lightweight data relationships
+- [`docs/AGENTCORE.md`](docs/AGENTCORE.md) - optional AgentCore compatibility guidance
+- [`docs/GOVCLOUD.md`](docs/GOVCLOUD.md) - GovCloud architecture considerations

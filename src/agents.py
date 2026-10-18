@@ -376,9 +376,8 @@ def validate_evidence(state: InvestigationState):
 
 
 def route_after_verification(state: InvestigationState):
-    report = state.get("report")
-    if report and report.status == "insufficient_evidence" and state.get("attempts", 0) < state.get("max_attempts", get_settings().max_agent_attempts):
-        return "research"
+    # A second pass previously repeated the same retrieval and SQL queries without
+    # changing strategy. Stop after one bounded pass and expose the evidence gap.
     return "final"
 
 

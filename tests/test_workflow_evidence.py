@@ -285,3 +285,4 @@ def test_missing_and_conflicting_scenarios_route_to_safe_states(tmp_path, monkey
     assert any("missing" in check.lower() or "correlation" in check.lower() for check in missing["report"].recommended_checks)
     assert conflicting["report"].status == "escalated"
     assert conflicting["report"].contradictions
+    assert not any(entry.step == "supervisor" and entry.status == "completed" for entry in missing["report"].agent_trace[1:])

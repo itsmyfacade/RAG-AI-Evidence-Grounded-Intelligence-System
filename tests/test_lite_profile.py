@@ -32,4 +32,4 @@ def test_lite_investigations_keep_graph_and_evidence(monkeypatch, tmp_path):
     assert completed["report"].provider == "local"
     assert len(completed["report"].evidence) >= 19
     assert insufficient["report"].status == "insufficient_evidence"
-    assert insufficient["report"].attempts == 2
+    assert insufficient["report"].attempts == 1

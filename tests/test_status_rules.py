@@ -38,3 +38,14 @@ def test_status_rules_ignore_malformed_timestamps_conservatively():
     status, _, contradictions = classify_status(_doc(), records)
     assert status == "completed"
     assert not contradictions
+
+
+def test_status_rules_compare_log_to_its_deployment_not_earliest_deployment():
+    records = [
+        _log(1, deployment="DEP-002"),
+        EvidenceRecord(evidence_id="OPS-1", source_type="deployment", source_id="DEP-001", excerpt="earlier deploy", metadata={"occurred_at": "2026-01-01T09:00:00Z"}),
+        EvidenceRecord(evidence_id="OPS-2", source_type="deployment", source_id="DEP-002", excerpt="associated deploy", metadata={"occurred_at": "2026-01-01T09:30:00Z"}),
+    ]
+    status, _, contradictions = classify_status(_doc(), records)
+    assert status == "completed"
+    assert not contradictions

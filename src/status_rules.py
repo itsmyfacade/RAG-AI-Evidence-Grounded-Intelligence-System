@@ -22,13 +22,17 @@ def _timestamp(value: str | None) -> datetime | None:
 
 
 def _has_timestamp_conflict(logs: list[EvidenceRecord], deployments: list[EvidenceRecord]) -> bool:
-    deployment_times = [_timestamp(record.metadata.get("occurred_at")) for record in deployments]
-    deployment_times = [value for value in deployment_times if value is not None]
-    if not deployment_times:
-        return False
-    earliest_deployment = min(deployment_times)
-    log_times = [_timestamp(record.metadata.get("occurred_at")) for record in logs]
-    return any(value is not None and value < earliest_deployment for value in log_times)
+    deployment_times = {
+        record.source_id: _timestamp(record.metadata.get("occurred_at"))
+        for record in deployments
+    }
+    for log in logs:
+        deployment_id = log.metadata.get("deployment_id")
+        deployment_time = deployment_times.get(deployment_id or "")
+        log_time = _timestamp(log.metadata.get("occurred_at"))
+        if deployment_time is not None and log_time is not None and log_time < deployment_time:
+            return True
+    return False
 
 
 def classify_status(documents: list[Document], operational: list[EvidenceRecord]) -> tuple[str, list[str], list[str]]:
