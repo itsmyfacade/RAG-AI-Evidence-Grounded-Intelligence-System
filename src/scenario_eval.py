@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 from src.agents import run_investigation
+from src.scenario_catalog import public_question
 
 LABEL_PATH = Path(__file__).resolve().parents[1] / "data" / "evaluation" / "scenario_labels.json"
 
@@ -18,7 +19,7 @@ def evaluate_scenarios() -> list[dict[str, str]]:
     results = []
     for label in load_labels():
         scenario_id = label["scenario_id"]
-        question = f"Investigate the available operational and documentation evidence for {scenario_id}. Do not assume a cause."
+        question = public_question(scenario_id)
         report = run_investigation(question, scenario_id=scenario_id)["report"]
         results.append({"scenario_id": scenario_id, "expected_status": label["expected_status"], "actual_status": report.status})
     return results

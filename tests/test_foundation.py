@@ -7,7 +7,7 @@ from src.dataset import generate_database
 from src.evidence import assess_claim_support, validate_citations
 from src.aws_s3 import S3DocumentSource
 from src.providers import BedrockProvider, ProviderError, _parse_structured
-from src.retrieval_eval import evaluate_cases
+from src.retrieval_eval import evaluate_cases, scenario_retrieval_diagnostics
 from src.schemas import Claim, EvidenceRecord
 from src.settings import get_settings
 from src.sql_tools import OperationalEvidenceStore
@@ -44,6 +44,15 @@ def test_retrieval_metrics_are_reproducible():
     docs = [Document(page_content="", metadata={"document_id": "INC-001", "category": "incident"})]
     result = evaluate_cases(cases, lambda question, k: docs, k=1)
     assert result == {"Recall@k": 1.0, "Hit@k": 1.0, "MRR": 1.0, "evidence_coverage": 1.0}
+
+
+def test_scenario_retrieval_diagnostics_does_not_use_answer_labels():
+    def docs(question, **_kwargs):
+        return [Document(page_content=question, metadata={"document_id": question})]
+
+    result = scenario_retrieval_diagnostics(docs, k=1)
+    assert result["distinct_retrieved_sets"] == 20
+    assert result["scenarios"][0]["scenario_id"] == "SCN-001"
 
 
 def test_settings_are_typed_and_path_independent(monkeypatch):

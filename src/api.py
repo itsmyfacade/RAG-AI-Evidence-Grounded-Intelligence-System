@@ -20,6 +20,7 @@ from src.settings import (
 from src.startup import diagnostics
 from src.startup import ensure_resources
 from src.sql_tools import OperationalEvidenceStore
+from src.scenario_catalog import public_question
 
 
 @asynccontextmanager
@@ -56,7 +57,7 @@ def samples():
     database_path = get_settings().database_path
     if database_path.exists():
         return [
-            {**item, "question": f"Investigate the available operational and documentation evidence for {item['scenario_id']}. Do not assume a root cause; distinguish observations, documented causes, hypotheses, and conclusions."}
+            {**item, "question": public_question(item["scenario_id"])}
             for item in OperationalEvidenceStore(database_path).scenario_options()
         ]
     return []
