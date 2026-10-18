@@ -65,8 +65,8 @@ The lite profile loads the small JSON document corpus directly, ranks lexical ov
 Use Python 3.12 for the canonical CI and Docker runtime. Full local vector RAG requires the pinned dependencies and a locally available embedding model.
 
 ```powershell
-git clone https://github.com/itsmyfacade/RAG-AI-Evidence-Grounded-Intelligence-System.git
-Set-Location "RAG-AI-Evidence-Grounded-Intelligence-System"
+git clone https://github.com/itsmyfacade/aegis-evidence-grounded-investigation.git
+Set-Location "aegis-evidence-grounded-investigation"
 py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
