@@ -1,0 +1,8 @@
+{
+  "document_id": "API-006",
+  "title": "Partner Configuration",
+  "category": "api",
+  "version": "1.0",
+  "classification": "internal",
+  "content": "Purpose: Partner Configuration.\n\nTechnical details: Partner integrations have separate sandbox and production credentials, allowed endpoints, scopes, and webhook destinations. Changes require validation before deployment.\n\nOperational guidance: Compare environment-specific configuration and audit history when a previously working integration fails.\n\nInvestigation evidence: Record affected services, timestamps, correlation identifiers, observed behavior, expected behavior, recent changes, and reproducible diagnostic steps.\n\nVerification: Compare outcomes against documented requirements. Do not claim a root cause without supporting evidence. Document unresolved uncertainty and recommended follow-up."
+}

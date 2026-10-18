@@ -1,0 +1,8 @@
+{
+  "document_id": "RUN-004",
+  "title": "Data Quality Investigation",
+  "category": "runbook",
+  "version": "1.0",
+  "classification": "internal",
+  "content": "Purpose: Data Quality Investigation.\n\nTechnical details: Compare source and destination counts, transformations, timestamps, null values, duplicates, and schema versions.\n\nOperational guidance: Use SQL aggregation and reconciliation reports to identify the earliest divergence.\n\nInvestigation evidence: Record affected services, timestamps, correlation identifiers, observed behavior, expected behavior, recent changes, and reproducible diagnostic steps.\n\nVerification: Compare outcomes against documented requirements. Do not claim a root cause without supporting evidence. Document unresolved uncertainty and recommended follow-up."
+}

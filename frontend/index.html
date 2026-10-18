@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AEGIS Investigation Demo</title><link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <header><p class="eyebrow">AI Evidence-Grounded Intelligence System</p><h1>Investigate an integration incident</h1><p>Choose one of twenty synthetic scenarios, run a bounded investigation, and inspect how each conclusion is supported.</p></header>
+    <section class="card controls"><label for="filter">Find a scenario</label><input id="filter" type="search" placeholder="Filter by ID, domain, or title"><p id="sample-count" class="muted"></p><label for="scenario">Scenario</label><select id="scenario"></select><textarea id="question" rows="3" aria-label="Investigation question"></textarea><button id="run">Run investigation</button><p id="status" role="status"></p></section>
+    <section class="card" id="result">
+      <div class="result-heading"><div><p class="eyebrow">Investigation report</p><h2 id="summary">Choose a scenario to begin.</h2></div><span id="status-badge" class="badge"></span></div>
+      <div class="meta"><span id="provider" class="badge"></span><span id="retrieval" class="badge"></span></div>
+      <div class="grid"><div><h3>Findings</h3><div id="findings"></div><h3>Recommended checks</h3><ul id="checks"></ul></div><div><h3>Evidence details</h3><div id="evidence"></div><h3>Agent trace</h3><ol id="trace"></ol></div></div>
+      <div class="grid"><div><h3>Contradictions</h3><ul id="contradictions"></ul></div><div><h3>Evidence gaps</h3><ul id="gaps"></ul></div></div>
+      <p class="note">Synthetic evidence only. Provider identity, uncertainty, and evidence limitations are part of the report.</p>
+    </section>
+  </main><script src="app.js"></script>
+</body>
+</html>

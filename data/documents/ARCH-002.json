@@ -1,0 +1,8 @@
+{
+  "document_id": "ARCH-002",
+  "title": "Authentication Architecture",
+  "category": "architecture",
+  "version": "1.0",
+  "classification": "internal",
+  "content": "Purpose: Authentication Architecture.\n\nTechnical details: API Gateway validates requests and delegates authorization to a service that evaluates token scopes and partner roles.\n\nOperational guidance: Authorization decisions are logged with correlation IDs and sanitized metadata.\n\nInvestigation evidence: Record affected services, timestamps, correlation identifiers, observed behavior, expected behavior, recent changes, and reproducible diagnostic steps.\n\nVerification: Compare outcomes against documented requirements. Do not claim a root cause without supporting evidence. Document unresolved uncertainty and recommended follow-up."
+}

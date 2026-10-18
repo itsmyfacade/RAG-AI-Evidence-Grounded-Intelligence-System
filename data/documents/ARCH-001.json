@@ -1,0 +1,8 @@
+{
+  "document_id": "ARCH-001",
+  "title": "Integration Architecture",
+  "category": "architecture",
+  "version": "1.0",
+  "classification": "internal",
+  "content": "The fictional Northstar Integration Cloud consists of a partner API gateway, authentication service, reporting service, webhook dispatcher, ETL jobs, and PostgreSQL storage. Each service emits structured logs with correlation IDs."
+}

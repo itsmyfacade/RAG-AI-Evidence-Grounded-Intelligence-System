@@ -1,0 +1,8 @@
+{
+  "document_id": "DATA-001",
+  "title": "ETL Reconciliation Procedure",
+  "category": "data",
+  "version": "1.3",
+  "classification": "internal",
+  "content": "Reconciliation compares source record counts, transformed records, destination counts, identifiers, and monetary totals. Engineers must account for UTC timestamps, duplicates, missing records, schema changes, and delayed ingestion."
+}

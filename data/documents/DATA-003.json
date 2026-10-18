@@ -1,0 +1,8 @@
+{
+  "document_id": "DATA-003",
+  "title": "Metadata Catalog",
+  "category": "data",
+  "version": "1.0",
+  "classification": "internal",
+  "content": "Purpose: Metadata Catalog.\n\nTechnical details: Documents are indexed by document_id, category, version, classification, and source path. Metadata supports filtering and evidence traceability.\n\nOperational guidance: Catalog entries must be validated and consistently normalized.\n\nInvestigation evidence: Record affected services, timestamps, correlation identifiers, observed behavior, expected behavior, recent changes, and reproducible diagnostic steps.\n\nVerification: Compare outcomes against documented requirements. Do not claim a root cause without supporting evidence. Document unresolved uncertainty and recommended follow-up."
+}

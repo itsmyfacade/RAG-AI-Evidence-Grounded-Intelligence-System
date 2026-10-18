@@ -1,0 +1,7 @@
+[
+  {"case_id": "Q-001", "question": "Why did reporting return HTTP 403 after deployment?", "relevant_document_ids": ["INC-001", "INC-008", "API-001"], "required_categories": ["incident", "api"], "evidence_profile": "relevant_with_distractors"},
+  {"case_id": "Q-002", "question": "How should duplicate webhook events be handled?", "relevant_document_ids": ["INC-005", "API-005"], "required_categories": ["incident", "api"], "evidence_profile": "relevant_with_distractors"},
+  {"case_id": "Q-003", "question": "What should be checked for delayed webhook delivery?", "relevant_document_ids": ["INC-002", "RUN-003"], "required_categories": ["incident", "runbook"], "evidence_profile": "relevant_with_distractors"},
+  {"case_id": "Q-004", "question": "How should a reporting data mismatch be reconciled?", "relevant_document_ids": ["INC-003", "DATA-001", "RUN-004"], "required_categories": ["incident", "data", "runbook"], "evidence_profile": "relevant_with_distractors"},
+  {"case_id": "Q-005", "question": "What are the rules for least privilege and secret handling?", "relevant_document_ids": ["SEC-001", "SEC-002"], "required_categories": ["security"], "evidence_profile": "missing_supporting_access_logs"}
+]

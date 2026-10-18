@@ -1,0 +1,22 @@
+[
+  {"scenario_id": "SCN-001", "expected_status": "completed"},
+  {"scenario_id": "SCN-002", "expected_status": "completed"},
+  {"scenario_id": "SCN-003", "expected_status": "completed"},
+  {"scenario_id": "SCN-004", "expected_status": "completed"},
+  {"scenario_id": "SCN-005", "expected_status": "completed"},
+  {"scenario_id": "SCN-006", "expected_status": "completed"},
+  {"scenario_id": "SCN-007", "expected_status": "completed"},
+  {"scenario_id": "SCN-008", "expected_status": "completed"},
+  {"scenario_id": "SCN-009", "expected_status": "completed"},
+  {"scenario_id": "SCN-010", "expected_status": "completed"},
+  {"scenario_id": "SCN-011", "expected_status": "completed"},
+  {"scenario_id": "SCN-012", "expected_status": "completed"},
+  {"scenario_id": "SCN-013", "expected_status": "completed"},
+  {"scenario_id": "SCN-014", "expected_status": "completed"},
+  {"scenario_id": "SCN-015", "expected_status": "completed"},
+  {"scenario_id": "SCN-016", "expected_status": "completed"},
+  {"scenario_id": "SCN-017", "expected_status": "completed"},
+  {"scenario_id": "SCN-018", "expected_status": "insufficient_evidence"},
+  {"scenario_id": "SCN-019", "expected_status": "escalated"},
+  {"scenario_id": "SCN-020", "expected_status": "completed"}
+]

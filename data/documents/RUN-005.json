@@ -1,0 +1,8 @@
+{
+  "document_id": "RUN-005",
+  "title": "Security Escalation",
+  "category": "runbook",
+  "version": "1.0",
+  "classification": "internal",
+  "content": "Purpose: Security Escalation.\n\nTechnical details: Suspected credential compromise requires containment, security notification, evidence preservation, and approved credential rotation.\n\nOperational guidance: Never paste secrets into tickets, logs, or external AI prompts.\n\nInvestigation evidence: Record affected services, timestamps, correlation identifiers, observed behavior, expected behavior, recent changes, and reproducible diagnostic steps.\n\nVerification: Compare outcomes against documented requirements. Do not claim a root cause without supporting evidence. Document unresolved uncertainty and recommended follow-up."
+}

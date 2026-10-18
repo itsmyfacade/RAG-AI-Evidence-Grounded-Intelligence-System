@@ -1,0 +1,8 @@
+{
+  "document_id": "INC-002",
+  "title": "Webhook Delivery Delays",
+  "category": "incident",
+  "version": "1.0",
+  "classification": "internal",
+  "content": "Webhook deliveries were delayed after downstream consumers stopped acknowledging events within the configured timeout. Events entered the retry queue. Engineers verified delivery logs, consumer response times, retry counts, and duplicate event handling."
+}

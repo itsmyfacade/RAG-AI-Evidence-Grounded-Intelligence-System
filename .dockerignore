@@ -1,0 +1,17 @@
+.git
+.venv
+.env
+__pycache__
+.pytest_cache
+.ruff_cache
+.chroma_*
+data/*.db
+*.zip
+*.log
+data/evaluation/results/
+.pytest_runtime
+.mypy_cache
+.coverage
+.vscode
+data/manifests/
+frontend/.cache/
