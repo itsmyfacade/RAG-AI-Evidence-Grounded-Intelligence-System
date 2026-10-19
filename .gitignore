@@ -15,6 +15,7 @@ data/manifests/
 data/evaluation/results/
 frontend/.cache/
 .pytest_runtime/
+public-baseline-staging/
 .mypy_cache/
 .coverage
 coverage.xml

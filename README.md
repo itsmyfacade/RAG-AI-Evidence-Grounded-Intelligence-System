@@ -56,7 +56,24 @@ Five-case synthetic evaluation:
 | MRR | 0.7000 | 1.0000 |
 | Evidence coverage | 0.8333 | 1.0000 |
 
-These are regression measurements on a small synthetic corpus, not production benchmark results.
+These are regression measurements on five labeled synthetic retrieval cases, not
+production benchmark results or diagnosis-accuracy measurements. Lite results
+are produced with `AEGIS_DEPLOYMENT_PROFILE=lite` and lexical retrieval. Standard
+results are produced with `AEGIS_DEPLOYMENT_PROFILE=standard`, the local
+`all-MiniLM-L6-v2` model, and a freshly built Chroma index. The evaluation script
+computes Recall@4, Hit@4, MRR, and evidence coverage from
+`data/evaluation/retrieval_cases.json`:
+
+```powershell
+$env:AEGIS_DEPLOYMENT_PROFILE="lite"
+python -m src.retrieval_eval --k 4
+
+$env:AEGIS_DEPLOYMENT_PROFILE="standard"
+$env:AEGIS_EMBEDDINGS="local"
+$env:AEGIS_EMBEDDING_LOCAL_FILES_ONLY="true"
+python -m src.rag
+python -m src.retrieval_eval --k 4
+```
 
 ### Hosted lite mode
 
