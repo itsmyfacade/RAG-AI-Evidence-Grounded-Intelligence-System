@@ -14,32 +14,31 @@ The public demo uses `AEGIS_DEPLOYMENT_PROFILE=lite` and `AEGIS_LLM=local`. It i
 
 ```mermaid
 flowchart LR
-    U[FastAPI request] --> S[Supervisor and planner]
+    U[FastAPI request] --> S[Supervisor: scenario selection]
     S --> D[Document research node]
-    S --> O[Operations analysis node]
-    D --> R[Chroma or lite lexical retrieval]
-    O --> Q[Read-only parameterized SQLite tools]
-    R --> I[Investigation synthesis]
-    Q --> I
+    D -.-> R[Chroma or lite lexical retrieval]
+    D --> O[Operations analysis node]
+    O -.-> Q[Read-only parameterized SQLite tools]
+    O --> I[Investigation synthesis]
     I --> V[Evidence registry and claim verification]
     V --> F[Typed report and sanitized trace]
     F --> API[FastAPI response and demo UI]
 ```
 
-An investigation request passes through one bounded, sequential LangGraph workflow: a supervisor selects the work, document research retrieves technical passages, operations analysis queries SQLite, synthesis uses the configured provider, and verification validates evidence identity and claim support. The research and verification stages are deterministic workflow nodes; only the configured synthesis provider performs model inference. The system distinguishes observations, hypotheses, documented causes, and operational confirmation.
+An investigation request passes through one bounded, sequential, single-pass LangGraph workflow (solid arrows are graph steps in execution order; dotted arrows are the data sources a step queries): a supervisor identifies the scenario, document research retrieves technical passages, operations analysis queries SQLite, synthesis uses the configured provider, and verification validates evidence identity and claim support. The graph ends after verification; there is no retry loop. The research and verification stages are deterministic workflow nodes; only the configured synthesis provider performs model inference. The system distinguishes observations, hypotheses, documented causes, and operational confirmation.
 
 ## Technology and data
 
 - Python, Pydantic, FastAPI, and Uvicorn
 - LangChain document, embedding, and provider abstractions
-- LangGraph supervisor, bounded routing, retries, and shared state
+- LangGraph supervisor, bounded single-pass sequential routing, and shared state
 - Chroma with Sentence Transformers for full local semantic retrieval
 - SQLite for logs, deployments, configuration, tickets, and webhook events
 - AWS Bedrock Runtime through Boto3 and LangChain `ChatBedrockConverse`
 - Gemini provider adapter for explicit operator-selected inference
 - Docker and GitHub Actions
 
-The deterministic generator creates 20 linked synthetic scenarios with partners, incidents, support tickets, deployments, configuration changes, API logs, webhook events, and technical documents. The baseline database contains 240 API log records, 80 webhook events, 20 records in the main scenario tables, and 30 cataloged narrative documents. Operational logs remain structured in SQLite rather than being indiscriminately embedded. Serving SQLite contains operational facts only; evaluator answers live separately in `data/evaluation/scenario_labels.json` and are never loaded by the API or graph.
+The deterministic generator creates 20 linked synthetic scenarios with partners, incidents, support tickets, deployments, configuration changes, API logs, webhook events, and technical documents. The baseline database contains 240 API log records, 80 webhook events, 20 records in the main scenario tables, and 30 cataloged narrative documents. Operational logs remain structured in SQLite rather than being indiscriminately embedded. Serving SQLite contains operational facts only; evaluator answers live separately in `data/evaluation/scenario_labels.json`, are never loaded by the API or graph, and are excluded from the Docker image. Public scenario titles and questions describe observable symptoms only; regression tests check that they do not name a documented cause or an expected evaluation condition, and that rewriting the labels changes no runtime status.
 
 ## Retrieval modes
 
@@ -128,7 +127,7 @@ If the embedding model is not cached, download it once in an environment with Hu
 Example request (the demo supplies a symptom-oriented question):
 
 ```powershell
-$body = @{ scenario_id = "SCN-005"; question = "Investigate repeated webhook deliveries and duplicate downstream records. Do not assume a root cause." } | ConvertTo-Json
+$body = @{ scenario_id = "SCN-005"; question = "Investigate webhook processing errors, delayed deliveries, and delivery attempts for a partner integration. Do not assume a root cause." } | ConvertTo-Json
 Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:8000/investigate" -ContentType "application/json" -Body $body
 ```
 
@@ -161,7 +160,7 @@ python -m src.scenario_eval
 
 The evaluator compares evidence-derived runtime statuses with held-out labels; any match rate is a synthetic consistency check, not a diagnosis-accuracy benchmark. Expected labels are never loaded by the serving API or graph.
 
-GitHub Actions uses Python 3.12, the pinned full dependency manifest, offline/local environment variables, compilation, pytest, Ruff, and frontend syntax validation. Remote workflow success should be confirmed in GitHub; local results do not prove a remote run passed.
+GitHub Actions runs continuous integration on every push and pull request: Python 3.12, the pinned full dependency manifest, offline/local environment variables, compilation, pytest, Ruff, and frontend syntax validation. Current status is shown by the CI badge above. The repository does not include continuous delivery; the Render demo is deployed separately.
 
 ## Security and limitations
 

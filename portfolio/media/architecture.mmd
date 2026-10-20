@@ -2,18 +2,17 @@
 title: AEGIS bounded investigation workflow
 source_commit: 7c73f1833ec461154f4d825dbbce51acfc8eef56
 captured: 2026-10-19
+updated: 2026-10-20 (sequential single-pass routing; dotted arrows are data sources)
 ---
 flowchart LR
-    U[FastAPI request] --> S[Supervisor and planner]
+    U[FastAPI request] --> S[Supervisor: scenario selection]
     S --> D[Document research node]
-    S --> O[Operations analysis node]
-    D --> L[Hosted lite: lexical retrieval]
-    D --> V[Standard local: Chroma + Sentence Transformers]
-    O --> Q[Read-only parameterized SQLite tools]
-    L --> I[Investigation synthesis]
-    V --> I
-    Q --> I
-    I --> P[Local deterministic, Gemini, or Bedrock provider]
-    P --> E[Evidence registry and claim verification]
+    D -.-> L[Hosted lite: lexical retrieval]
+    D -.-> V[Standard local: Chroma + Sentence Transformers]
+    D --> O[Operations analysis node]
+    O -.-> Q[Read-only parameterized SQLite tools]
+    O --> I[Investigation synthesis]
+    I -.-> P[Local deterministic, Gemini, or Bedrock provider]
+    I --> E[Evidence registry and claim verification]
     E --> R[Typed report and sanitized trace]
     R --> A[FastAPI response and demo UI]

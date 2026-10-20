@@ -15,3 +15,4 @@ data/evaluation/results/
 .vscode
 data/manifests/
 frontend/.cache/
+data/evaluation/
