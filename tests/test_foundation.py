@@ -1,11 +1,12 @@
 import sqlite3
+from typing import ClassVar
 from unittest.mock import patch
 
 from langchain_core.documents import Document
 
+from src.aws_s3 import S3DocumentSource
 from src.dataset import generate_database
 from src.evidence import assess_claim_support, validate_citations
-from src.aws_s3 import S3DocumentSource
 from src.providers import BedrockProvider, ProviderError, _parse_structured
 from src.retrieval_eval import evaluate_cases, scenario_retrieval_diagnostics
 from src.schemas import Claim, EvidenceRecord
@@ -105,7 +106,7 @@ def test_bedrock_provider_uses_configured_model_without_network():
 
 def test_bedrock_access_errors_are_classified():
     class FakeError(Exception):
-        response = {"Error": {"Code": "AccessDeniedException"}}
+        response: ClassVar[dict[str, dict[str, str]]] = {"Error": {"Code": "AccessDeniedException"}}
 
     class FailingBedrock:
         def converse(self, **kwargs):
@@ -122,7 +123,7 @@ def test_bedrock_access_errors_are_classified():
 def test_langchain_bedrock_adapter_uses_inference_profile_and_structured_output():
     class FakeResponse:
         content = '{"summary":"supported","findings":[{"statement":"The evidence is relevant","status":"observation","evidence_refs":["DOC-INC-001-0"]}],"uncertainty":["Root cause is not proven"],"recommended_checks":["Correlate request IDs"],"evidence_gaps":[]}'
-        usage_metadata = {"input_tokens": 12, "output_tokens": 18, "total_tokens": 30}
+        usage_metadata: ClassVar[dict[str, int]] = {"input_tokens": 12, "output_tokens": 18, "total_tokens": 30}
 
     class FakeLLM:
         def __init__(self):
@@ -191,8 +192,9 @@ def test_schema_repair_preserves_grounding_and_uses_allowed_statuses():
     valid = '{"summary":"ok","findings":[{"statement":"Documented cause: missing event_id persistence; independent confirmation is absent","status":"conclusion","evidence_refs":["DOC-INC-005-0"]}],"uncertainty":["SQL and webhook records do not independently confirm idempotency failure"],"recommended_checks":[],"evidence_gaps":[]}'
 
     class FakeLLM:
-        calls = 0
-        messages = []
+        def __init__(self):
+            self.calls = 0
+            self.messages = []
 
         def invoke(self, messages):
             self.calls += 1

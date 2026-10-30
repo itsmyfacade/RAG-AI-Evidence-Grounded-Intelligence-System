@@ -5,9 +5,8 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from pydantic import BaseModel, Field, field_validator
 from dotenv import load_dotenv
-
+from pydantic import BaseModel, Field, field_validator
 
 ROOT = Path(__file__).resolve().parents[1]
 load_dotenv(ROOT / ".env", override=False)
@@ -62,7 +61,7 @@ class Settings(BaseModel):
         return value
 
     @classmethod
-    def from_environment(cls) -> "Settings":
+    def from_environment(cls) -> Settings:
         def boolean(name: str, default: bool) -> bool:
             value = os.getenv(name)
             return default if value is None else value.lower() in {"1", "true", "yes", "on"}

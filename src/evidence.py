@@ -21,7 +21,7 @@ class EvidenceRegistry:
     aliases: dict[str, str] = field(default_factory=dict)
 
     @classmethod
-    def from_records(cls, records: list[EvidenceRecord]) -> "EvidenceRegistry":
+    def from_records(cls, records: list[EvidenceRecord]) -> EvidenceRegistry:
         registry = cls()
         for record in records:
             registry.add(record)

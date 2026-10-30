@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import json
 import hashlib
+import json
 import sqlite3
 from pathlib import Path
 
@@ -19,7 +19,6 @@ from src.data_schemas import (
     WebhookEventRecord,
 )
 from src.scenario_catalog import public_title
-
 
 VALIDATORS = {
     "scenario": ScenarioRecord,

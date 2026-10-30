@@ -1,5 +1,5 @@
-﻿from src.rag import search
-from src.bedrock import generate_answer
+﻿from src.bedrock import generate_answer
+from src.rag import search
 
 question = "Why would a partner receive HTTP 403 after a deployment?"
 

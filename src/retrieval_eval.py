@@ -46,6 +46,7 @@ def scenario_retrieval_diagnostics(retriever, k: int = 4) -> dict:
 
 if __name__ == "__main__":
     import argparse
+
     from src.rag import search
     parser = argparse.ArgumentParser()
     parser.add_argument("--k", type=int, default=4)

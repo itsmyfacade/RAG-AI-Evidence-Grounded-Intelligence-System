@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import threading
 import time
-from contextlib import asynccontextmanager
 from collections import defaultdict, deque
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
@@ -13,14 +13,13 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from src.agents import run_investigation
+from src.scenario_catalog import public_question
 from src.schemas import InvestigationRequest, InvestigationResponse
 from src.settings import (
     get_settings,
 )
-from src.startup import diagnostics
-from src.startup import ensure_resources
 from src.sql_tools import OperationalEvidenceStore
-from src.scenario_catalog import public_question
+from src.startup import diagnostics, ensure_resources
 
 
 @asynccontextmanager

@@ -14,7 +14,6 @@ from pydantic import ValidationError
 from src.schemas import GeneratedSynthesis
 from src.settings import get_settings
 
-
 LOGGER = logging.getLogger("aegis.providers")
 REPAIRABLE_OUTPUT_ERRORS = {"invalid_json", "truncated_output", "schema_mismatch", "unexpected_content", "empty_response"}
 PARSER_REVISION = "status-taxonomy-v3"

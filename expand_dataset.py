@@ -1,5 +1,5 @@
-﻿from pathlib import Path
-import json
+﻿import json
+from pathlib import Path
 
 root = Path(__file__).resolve().parent / "data" / "documents"
 

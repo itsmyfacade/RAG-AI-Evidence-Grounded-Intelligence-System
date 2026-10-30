@@ -1,7 +1,7 @@
 ﻿import json
+
 import boto3
 import requests
-
 from botocore.auth import SigV4Auth
 from botocore.awsrequest import AWSRequest
 

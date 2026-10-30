@@ -1,5 +1,5 @@
-﻿from pathlib import Path
-import json
+﻿import json
+from pathlib import Path
 
 documents = [
     ("API-001", "Reporting API Authentication", "api", "1.2",

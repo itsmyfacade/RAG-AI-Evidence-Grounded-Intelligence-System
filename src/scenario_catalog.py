@@ -6,7 +6,6 @@ describe observed symptoms only; expected outcomes remain in the offline evaluat
 
 from __future__ import annotations
 
-
 SCENARIO_PRESENTATION: dict[str, tuple[str, str]] = {
     "SCN-001": ("Reporting requests returned HTTP 403 after a deployment", "Investigate reporting requests returning HTTP 403 after a deployment and authorization evidence."),
     "SCN-002": ("Partner reporting requests returned HTTP 401", "Investigate partner reporting requests returning HTTP 401 and the related authentication records."),

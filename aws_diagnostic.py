@@ -13,10 +13,12 @@ def main():
     print(f"AWS credentials resolved: {bool(session.get_credentials())}")
     print(f"Region configured: {args.region}")
     if args.bucket:
+        from botocore.exceptions import BotoCoreError
+
         try:
             session.client("s3").list_objects_v2(Bucket=args.bucket, Prefix="documents/", MaxKeys=1)
             print("S3 list permission: available")
-        except Exception as exc:
+        except BotoCoreError as exc:
             print(f"S3 list permission: unavailable ({type(exc).__name__})")
 
 

@@ -1,9 +1,12 @@
+import sys
+import types
+from typing import ClassVar
+
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
-from unittest.mock import patch
 
-import src.rag as rag
+from src import rag
 from src.rag import LocalEmbeddings
 
 
@@ -60,9 +63,21 @@ def test_local_embeddings_use_configured_model_and_cache_policy(monkeypatch):
     monkeypatch.setenv("AEGIS_DEPLOYMENT_PROFILE", "standard")
     monkeypatch.setenv("AEGIS_EMBEDDING_MODEL", "all-MiniLM-L6-v2")
     monkeypatch.setenv("AEGIS_EMBEDDING_LOCAL_FILES_ONLY", "true")
-    with patch("sentence_transformers.SentenceTransformer") as constructor:
-        constructor.return_value.encode.return_value = [[0.1, 0.2]]
-        embeddings = LocalEmbeddings()
-    assert embeddings.model is constructor.return_value
-    assert constructor.call_args.kwargs["local_files_only"] is True
-    assert constructor.call_args.args[0] == "all-MiniLM-L6-v2"
+    class FakeSentenceTransformer:
+        instances: ClassVar[list["FakeSentenceTransformer"]] = []
+
+        def __init__(self, *args, **kwargs):
+            self.args = args
+            self.kwargs = kwargs
+            self.encode = lambda texts, normalize_embeddings: [[0.1, 0.2] for _ in texts]
+            self.instances.append(self)
+
+    fake_module = types.ModuleType("sentence_transformers")
+    fake_module.SentenceTransformer = FakeSentenceTransformer
+    monkeypatch.setitem(sys.modules, "sentence_transformers", fake_module)
+
+    embeddings = LocalEmbeddings()
+
+    assert embeddings.model is FakeSentenceTransformer.instances[0]
+    assert embeddings.model.kwargs["local_files_only"] is True
+    assert embeddings.model.args[0] == "all-MiniLM-L6-v2"

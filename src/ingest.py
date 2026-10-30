@@ -7,7 +7,6 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from src.settings import get_settings
 
-
 REQUIRED = {"document_id", "title", "category", "version", "classification", "content"}
 
 

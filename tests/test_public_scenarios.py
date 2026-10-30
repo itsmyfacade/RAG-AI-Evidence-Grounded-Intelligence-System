@@ -1,5 +1,5 @@
-from src.scenario_catalog import SCENARIO_PRESENTATION, public_question, public_title
 from src.dataset import generate_database
+from src.scenario_catalog import SCENARIO_PRESENTATION, public_question, public_title
 from src.sql_tools import OperationalEvidenceStore
 
 

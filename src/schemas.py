@@ -4,7 +4,6 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
-
 EvidenceKind = Literal["document", "sql", "log", "deployment", "configuration", "ticket", "webhook"]
 SupportStatus = Literal["supported", "partially_supported", "unsupported", "unverified"]
 

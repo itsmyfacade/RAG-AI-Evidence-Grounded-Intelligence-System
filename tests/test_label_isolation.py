@@ -13,7 +13,7 @@ import pathlib
 
 import pytest
 
-import src.scenario_eval as scenario_eval
+from src import scenario_eval
 from src.agents import run_investigation
 from src.dataset import generate_database
 from src.scenario_catalog import SCENARIO_PRESENTATION, public_question
