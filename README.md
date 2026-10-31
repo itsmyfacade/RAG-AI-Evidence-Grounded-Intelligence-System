@@ -46,22 +46,11 @@ The deterministic generator creates 20 linked synthetic scenarios with partners,
 
 The standard profile uses `all-MiniLM-L6-v2` Sentence Transformer embeddings with 384 dimensions and a persisted Chroma collection named `aegis_incidents` in `.chroma_local`. Chunks use a 500-character target and 80-character overlap. The small deterministic corpus is rebuilt safely so changed and deleted chunks are reconciled.
 
-Five-case synthetic evaluation:
-
-| Metric | Lite lexical | Standard vector |
-| --- | ---: | ---: |
-| Recall@4 | 0.5667 | 1.0000 |
-| Hit@4 | 0.8000 | 1.0000 |
-| MRR | 0.7000 | 1.0000 |
-| Evidence coverage | 0.8333 | 1.0000 |
-
-These are regression measurements on five labeled synthetic retrieval cases, not
-production benchmark results or diagnosis-accuracy measurements. Lite results
-are produced with `AEGIS_DEPLOYMENT_PROFILE=lite` and lexical retrieval. Standard
-results are produced with `AEGIS_DEPLOYMENT_PROFILE=standard`, the local
-`all-MiniLM-L6-v2` model, and a freshly built Chroma index. The evaluation script
-computes Recall@4, Hit@4, MRR, and evidence coverage from
-`data/evaluation/retrieval_cases.json`:
+The standard-vector path is implemented and separately tested with fake embeddings,
+but a current end-to-end Sentence Transformers benchmark is not claimed here because
+model initialization remains environment-dependent under Python 3.14. The evaluation
+script computes Recall@4, Hit@4, MRR, and evidence coverage from
+`data/evaluation/retrieval_cases.json`.
 
 ```powershell
 $env:AEGIS_DEPLOYMENT_PROFILE="lite"
@@ -78,6 +67,20 @@ python -m src.retrieval_eval --k 4
 
 The lite profile loads the small JSON document corpus directly, ranks lexical overlap, and preserves canonical metadata and evidence validation. It does not import Torch, Sentence Transformers, Chroma, or `langchain_chroma`. It reports `retrieval_mode=lexical`; it is not presented as embedding-quality retrieval.
 
+The following five-case regression results are hosted-lite lexical results, not
+standard Chroma/Sentence Transformers results:
+
+| Metric | Hosted-lite lexical |
+| --- | ---: |
+| Recall@4 | 0.5667 |
+| Hit@4 | 0.8000 |
+| MRR | 0.7000 |
+| Evidence coverage | 0.8333 |
+
+These are regression measurements on labeled synthetic retrieval cases, not
+production benchmark results or diagnosis-accuracy measurements. They were produced
+with `AEGIS_DEPLOYMENT_PROFILE=lite` and lexical retrieval.
+
 ## Local setup
 
 Use Python 3.12 for the canonical CI and Docker runtime. Full local vector RAG requires the pinned dependencies and a locally available embedding model.
@@ -89,7 +92,7 @@ py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
 Copy-Item .env.example .env
-python generate_data.py
+python generate_data.py --mode all
 ```
 
 For a low-memory local run:
@@ -116,6 +119,31 @@ python -m uvicorn src.api:app --reload
 
 If the embedding model is not cached, download it once in an environment with Hugging Face access, then rerun with `AEGIS_EMBEDDING_LOCAL_FILES_ONLY=true`.
 
+## Canonical data generation
+
+`generate_data.py` is the only public data-generation entry point. It creates or validates
+the deterministic 30-document corpus and linked SQLite dataset without silently replacing
+conflicting files. The four modes are:
+
+- `documents` — create or validate-compatible narrative documents only.
+- `database` — create the database, or validate an existing one unless replacement is explicit.
+- `all` — safely create both outputs, preserving compatible existing files.
+- `validate` — validate both outputs without changing them.
+
+```powershell
+python generate_data.py --mode documents
+python generate_data.py --mode database
+python generate_data.py --mode all
+python generate_data.py --mode validate
+```
+
+Use `--documents-dir` and `--database-path` for explicit output locations. Repeated
+generation is safe: compatible documents are unchanged and an existing database is
+validated rather than replaced. Existing conflicting documents require
+`--replace-documents`; replacing an existing database requires `--replace-database`.
+With no mode, the command defaults to database generation, retaining the Docker-compatible
+behavior used by the image build.
+
 ## API and demo
 
 - `GET /health` - process health
@@ -135,7 +163,7 @@ Reports include status, summary, findings, evidence references and excerpts, hyp
 
 ## Providers and AWS boundary
 
-`AEGIS_LLM=local` uses deterministic synthesis for tests and demonstrations; it is not LLM inference. `AEGIS_LLM=bedrock` selects the real Bedrock provider explicitly. The verified local Bedrock configuration uses region `us-east-2` and inference profile `us.amazon.nova-micro-v1:0` through `ChatBedrockConverse`. Provider identity is preserved and failures do not silently fall back to local output.
+`AEGIS_LLM=local` uses deterministic synthesis for tests and demonstrations; it is not LLM inference. `AEGIS_LLM=bedrock` selects the real Bedrock provider explicitly. The repository configures region `us-east-2` and inference profile `us.amazon.nova-micro-v1:0` through `ChatBedrockConverse`; a successful live Bedrock request is not verified by the offline test suite. Provider identity is preserved and failures do not silently fall back to local output.
 
 The hosted Render demo remains local-only and does not require AWS credentials. S3 synchronization, IAM examples, Bedrock diagnostics, AgentCore packaging guidance, and GovCloud design notes are available in `docs/`. No AWS resources are provisioned by this repository.
 
@@ -146,7 +174,7 @@ Normal tests are offline and do not call Bedrock, Gemini, S3, IAM, or Hugging Fa
 ```powershell
 python -m compileall -q src tests generate_data.py aws_diagnostic.py
 python -m pytest tests -q
-python -m ruff check src tests generate_data.py aws_diagnostic.py --select E4,E7,E9,F
+python -m ruff check .
 node --check frontend/app.js
 ```
 
@@ -158,7 +186,10 @@ $env:AEGIS_DEPLOYMENT_PROFILE="lite"
 python -m src.scenario_eval
 ```
 
-The evaluator compares evidence-derived runtime statuses with held-out labels; any match rate is a synthetic consistency check, not a diagnosis-accuracy benchmark. Expected labels are never loaded by the serving API or graph.
+The evaluator compares evidence-derived runtime statuses with public synthetic reference labels;
+these labels are not private held-out ground truth. Any match rate is a synthetic consistency
+check, not a diagnosis-accuracy benchmark. Expected labels are never loaded by the serving API
+or graph.
 
 GitHub Actions runs continuous integration on every push and pull request: Python 3.12, the pinned full dependency manifest, offline/local environment variables, compilation, pytest, Ruff, and frontend syntax validation. Current status is shown by the CI badge above. The repository does not include continuous delivery; the Render demo is deployed separately.
 
@@ -183,3 +214,16 @@ AEGIS is an engineering demonstration, not a production incident-management syst
 - [`docs/DOMAIN_ONTOLOGY.md`](docs/DOMAIN_ONTOLOGY.md) - lightweight data relationships
 - [`docs/AGENTCORE.md`](docs/AGENTCORE.md) - optional AgentCore compatibility guidance
 - [`docs/GOVCLOUD.md`](docs/GOVCLOUD.md) - GovCloud architecture considerations
+
+## Project structure
+
+```text
+src/                 FastAPI, LangGraph, retrieval, providers, evidence, and SQLite tools
+data/documents/      30 synthetic narrative documents
+data/evaluation/     Public synthetic evaluation fixtures
+frontend/            Lightweight static demonstration UI
+tests/               Offline unit, integration, security, and generator-contract tests
+generate_data.py     Canonical documents/database generation and validation CLI
+Dockerfile           Lite-by-default container entry point
+docs/                Deployment, ontology, hands-on, and cloud-boundary guides
+```

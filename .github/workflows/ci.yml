@@ -36,7 +36,7 @@ jobs:
         run: python -m pytest tests -v
 
       - name: Static quality checks
-        run: python -m ruff check src tests generate_data.py aws_diagnostic.py bedrock_smoke.py create_dataset.py expand_dataset.py mantle_smoke.py
+        run: python -m ruff check src tests generate_data.py aws_diagnostic.py bedrock_smoke.py mantle_smoke.py
 
       - name: Frontend JavaScript syntax check
         run: node --check frontend/app.js

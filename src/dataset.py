@@ -132,7 +132,7 @@ def _rows(scenario_number: int, code: str, title: str, domain: str):
         yield "webhook", (f"EVT-{scenario_number:03d}-{event_index:02d}", scenario_id, partner_id, f"2026-01-{(scenario_number % 28) + 1:02d}T10:{event_index:02d}:30Z", "report.updated", "delayed" if domain == "webhook" else "delivered", event_index + 1, None if domain == "webhook" else f"2026-01-{(scenario_number % 28) + 1:02d}T10:{event_index + 1:02d}:00Z")
 
 
-def generate_database(path: str | Path) -> dict[str, int]:
+def generate_database(path: str | Path, documents_path: str | Path | None = None) -> dict[str, int]:
     """Create the same database contents on every run using a transaction."""
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -160,7 +160,7 @@ def generate_database(path: str | Path) -> dict[str, int]:
                     conn.execute("INSERT INTO support_tickets VALUES (?,?,?,?,?,?)", row)
                 elif kind == "webhook":
                     conn.execute("INSERT INTO webhook_events VALUES (?,?,?,?,?,?,?,?)", row)
-        document_dir = Path(__file__).resolve().parents[1] / "data" / "documents"
+        document_dir = Path(documents_path) if documents_path is not None else Path(__file__).resolve().parents[1] / "data" / "documents"
         for index, document_path in enumerate(sorted(document_dir.glob("*.json"))):
             content = document_path.read_text(encoding="utf-8")
             record = json.loads(content)
