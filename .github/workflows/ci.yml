@@ -42,7 +42,7 @@ jobs:
         run: python -m pip check
 
       - name: Audit Python dependencies
-        run: python -m pip install pip-audit && pip-audit -r requirements.txt --progress-spinner off
+        run: python -m pip install pip-audit && pip-audit -r requirements.txt --disable-pip --no-deps --progress-spinner off
 
       - name: Frontend JavaScript syntax check
         run: node --check frontend/app.js
@@ -95,3 +95,59 @@ jobs:
             playwright-report/
             test-results/
           if-no-files-found: ignore
+
+  standard-profile-security-report:
+    name: Standard profile security report (informational)
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install standard-profile dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-standard.txt
+
+      - name: Run standard-profile vector regression tests
+        env:
+          AEGIS_DEPLOYMENT_PROFILE: standard
+          AEGIS_LLM: local
+          AEGIS_EMBEDDINGS: local
+          AEGIS_EMBEDDING_LOCAL_FILES_ONLY: "true"
+        run: python -m pytest tests/test_rag.py -q
+
+      - name: Audit standard-profile dependencies
+        id: standard-audit
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          python -m pip install pip-audit
+          pip-audit -r requirements-standard.txt --disable-pip --no-deps --progress-spinner off | tee standard-profile-pip-audit.txt
+          audit_status=${PIPESTATUS[0]}
+          {
+            echo "### Standard-profile dependency audit"
+            echo ""
+            echo "This report is informational because the optional standard profile currently contains unresolved ChromaDB advisories."
+            echo "pip-audit exit code: ${audit_status}"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$audit_status" -ne 0 ]; then
+            echo "::warning title=Standard profile advisories::Unresolved standard-profile dependency findings remain; see the uploaded audit report."
+          fi
+          exit 0
+
+      - name: Upload standard-profile security report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: standard-profile-security-report
+          path: standard-profile-pip-audit.txt
+          if-no-files-found: warn

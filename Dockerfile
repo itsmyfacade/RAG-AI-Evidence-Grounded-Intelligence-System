@@ -9,8 +9,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     AEGIS_DEPLOYMENT_PROFILE=${AEGIS_DEPLOYMENT_PROFILE}
 
 WORKDIR /app
-COPY requirements.txt requirements-lite.txt .
-RUN if [ "$AEGIS_DEPLOYMENT_PROFILE" = "lite" ]; then pip install --no-cache-dir -r requirements-lite.txt; else pip install --no-cache-dir -r requirements.txt; fi
+COPY requirements.txt requirements-lite.txt requirements-standard.txt .
+RUN if [ "$AEGIS_DEPLOYMENT_PROFILE" = "lite" ]; then pip install --no-cache-dir -r requirements-lite.txt; else pip install --no-cache-dir -r requirements-standard.txt; fi
 COPY . .
 RUN python generate_data.py
 

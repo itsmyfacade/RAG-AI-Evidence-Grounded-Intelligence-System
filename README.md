@@ -83,7 +83,7 @@ with `AEGIS_DEPLOYMENT_PROFILE=lite` and lexical retrieval.
 
 ## Local setup
 
-Use Python 3.12 for the canonical CI and Docker runtime. Full local vector RAG requires the pinned dependencies and a locally available embedding model.
+Use Python 3.12 for the canonical CI and Docker runtime. The default `requirements.txt` is a secure lite-compatible development and CI set. The Render/Docker lite image uses the smaller `requirements-lite.txt`; standard vector RAG uses the optional `requirements-standard.txt` set and a locally available embedding model.
 
 ```powershell
 git clone https://github.com/itsmyfacade/RAG-AI-Evidence-Grounded-Intelligence-System.git
@@ -112,6 +112,7 @@ $env:AEGIS_LLM="local"
 $env:AEGIS_EMBEDDINGS="local"
 $env:AEGIS_EMBEDDING_MODEL="all-MiniLM-L6-v2"
 $env:AEGIS_EMBEDDING_LOCAL_FILES_ONLY="true"
+python -m pip install -r requirements-standard.txt
 python -m src.rag
 python -m src.retrieval_eval
 python -m uvicorn src.api:app --reload
@@ -169,7 +170,7 @@ The hosted Render demo remains local-only and does not require AWS credentials. 
 
 ## Tests, QA automation, and CI
 
-Normal tests are offline and do not call Bedrock, Gemini, S3, IAM, or Hugging Face. Python 3.12 in GitHub Actions and Docker is the compatibility baseline. Standard vector retrieval is tested separately from the lite CI path because it requires a locally cached embedding model; the hosted demo does not require that model. The layered QA commands and browser-test boundaries are documented in [`docs/QA_AUTOMATION.md`](docs/QA_AUTOMATION.md).
+Normal tests are offline and do not call Bedrock, Gemini, S3, IAM, or Hugging Face. Python 3.12 in GitHub Actions and Docker is the compatibility baseline. Hosted-lite has a blocking dependency audit and runs without Chroma. Standard vector retrieval is tested separately with its optional dependency set; the hosted demo does not install or require that set. The layered QA commands and browser-test boundaries are documented in [`docs/QA_AUTOMATION.md`](docs/QA_AUTOMATION.md).
 
 ```powershell
 python -m compileall -q src tests generate_data.py aws_diagnostic.py
@@ -191,7 +192,7 @@ these labels are not private held-out ground truth. Any match rate is a syntheti
 check, not a diagnosis-accuracy benchmark. Expected labels are never loaded by the serving API
 or graph.
 
-GitHub Actions runs continuous integration on every push and pull request: Python 3.12, the pinned full dependency manifest, offline/local environment variables, compilation, pytest and HTTPX API contracts, Ruff, dependency checks, and frontend syntax validation. A separate Chromium/Playwright job exercises the local hosted-lite server and uploads browser reports, screenshots, and traces when available. Current status is shown by the CI badge above. The repository does not include continuous delivery; the Render demo is deployed separately.
+GitHub Actions runs continuous integration on every push and pull request: Python 3.12, the secure lite-compatible manifest, offline/local environment variables, compilation, pytest and HTTPX API contracts, Ruff, dependency checks, and frontend syntax validation. A separate Chromium/Playwright job exercises the local hosted-lite server and uploads browser reports, screenshots, and traces when available. A separately named standard-profile job runs vector regression tests and uploads a visible dependency-audit report; its ChromaDB findings are currently unresolved and are not a security certification. Current status is shown by the CI badge above. The repository does not include continuous delivery; the Render demo is deployed separately.
 
 ## Security and limitations
 
@@ -204,6 +205,7 @@ GitHub Actions runs continuous integration on every push and pull request: Pytho
 - A documented cause is not automatically an operationally confirmed root cause.
 - The demo is not authenticated and relies on in-process quotas; production use would require stronger identity, rate limiting, durable storage, monitoring, and secret management.
 - Standard Sentence Transformer and Chroma mode is not suitable for a 512 MB hosted instance.
+- Hosted-lite is the approved lightweight deployment profile and does not install ChromaDB. The optional standard profile remains security-blocked by unresolved ChromaDB advisories `PYSEC-2026-311`, `PYSEC-2026-3813`, `PYSEC-2026-3814`, and `PYSEC-2026-3815` (the audit currently reports `PYSEC-2026-311` twice through aliases). No fixed version was reported by the advisory service at the time of validation.
 
 AEGIS is an engineering demonstration, not a production incident-management system or production root-cause certification service.
 

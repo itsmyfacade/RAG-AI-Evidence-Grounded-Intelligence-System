@@ -13,9 +13,21 @@ python -m pytest tests -q
 python -m pytest tests/test_api_contract.py -q
 python -m ruff check .
 node --check frontend/app.js
+npm audit --audit-level=high
 npm ci
 npx playwright install chromium
 npm run test:e2e
+```
+
+The blocking Python audit targets `requirements.txt`, the secure
+lite-compatible CI/development set. The Render/Docker lite image uses the
+smaller `requirements-lite.txt`. Standard local vector retrieval is installed
+separately with `requirements-standard.txt`:
+
+```powershell
+python -m pip install -r requirements-standard.txt
+$env:AEGIS_DEPLOYMENT_PROFILE="standard"
+python -m pytest tests/test_rag.py -q
 ```
 
 The API contract tests use HTTPX with FastAPI's ASGI application. They validate
@@ -29,10 +41,18 @@ artifacts and are uploaded by CI only when the browser job runs.
 
 GitHub Actions runs on every push and pull request. The Python job compiles the
 application, runs the full offline pytest suite, checks Ruff, validates frontend
-JavaScript syntax, and runs `pip check` plus `pip-audit`. A separate Chromium job
+JavaScript syntax, and runs `pip check` plus a blocking `pip-audit` against the
+lite-compatible manifest. A separate Chromium job
 installs the lite runtime, starts the local server through Playwright's
 `webServer`, and runs the end-to-end suite. Browser reports, screenshots, and
 traces are retained as workflow artifacts when available.
+
+The separately named `standard-profile-security-report` job installs the
+optional standard dependencies, runs the Chroma regression tests, and uploads
+the complete standard-profile `pip-audit` output. Its audit is informational
+only because current ChromaDB advisories have no reported fixed version; the
+job visibly warns and records the nonzero audit result rather than suppressing
+it. A successful lite gate does not certify standard semantic-RAG security.
 
 A failed Python gate indicates a source, contract, regression, or dependency
 problem. A failed browser gate should first be classified as server startup,
