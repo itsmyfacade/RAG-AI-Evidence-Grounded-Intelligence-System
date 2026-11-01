@@ -44,7 +44,7 @@ The deterministic generator creates 20 linked synthetic scenarios with partners,
 
 ### Standard local vector RAG
 
-The standard profile uses `all-MiniLM-L6-v2` Sentence Transformer embeddings with 384 dimensions and a persisted Chroma collection named `aegis_incidents` in `.chroma_local`. Chunks use a 500-character target and 80-character overlap. The small deterministic corpus is rebuilt safely so changed and deleted chunks are reconciled.
+The standard profile is configured to use `all-MiniLM-L6-v2` Sentence Transformer embeddings (a 384-dimensional model) and a persisted Chroma collection named `aegis_incidents` in `.chroma_local`. Chunks use a 500-character target and 80-character overlap in `src/ingest.py`. The small deterministic corpus is rebuilt safely so changed and deleted chunks are reconciled. The Chroma directory is an ignored runtime artifact: it is created only when standard vector indexing runs, not by importing the application or running hosted-lite, so it may be absent on a fresh checkout. Standard semantic retrieval remains optional and security-blocked by the unresolved ChromaDB advisories described below.
 
 The standard-vector path is implemented and separately tested with fake embeddings,
 but a current end-to-end Sentence Transformers benchmark is not claimed here because
@@ -192,7 +192,7 @@ these labels are not private held-out ground truth. Any match rate is a syntheti
 check, not a diagnosis-accuracy benchmark. Expected labels are never loaded by the serving API
 or graph.
 
-GitHub Actions runs continuous integration on every push and pull request: Python 3.12, the secure lite-compatible manifest, offline/local environment variables, compilation, pytest and HTTPX API contracts, Ruff, dependency checks, and frontend syntax validation. A separate Chromium/Playwright job exercises the local hosted-lite server and uploads browser reports, screenshots, and traces when available. A separately named standard-profile job runs vector regression tests and uploads a visible dependency-audit report; its ChromaDB findings are currently unresolved and are not a security certification. Current status is shown by the CI badge above. The repository does not include continuous delivery; the Render demo is deployed separately.
+GitHub Actions runs continuous integration on every push and pull request using the explicitly pinned Ubuntu 24.04 runner. The workflow uses Node 24-compatible official actions, Python 3.12, the secure lite-compatible manifest, offline/local environment variables, compilation, pytest and HTTPX API contracts, Ruff, dependency checks, and frontend syntax validation. A separate Chromium/Playwright job exercises the local hosted-lite server and uploads browser reports, screenshots, and traces when available. A separately named standard-profile job runs vector regression tests and uploads a visible dependency-audit report; its ChromaDB findings are currently unresolved and are not a security certification. Current status is shown by the CI badge above. The repository does not include continuous delivery; the Render demo is deployed separately.
 
 ## Security and limitations
 

@@ -39,7 +39,10 @@ artifacts and are uploaded by CI only when the browser job runs.
 
 ## CI quality gates
 
-GitHub Actions runs on every push and pull request. The Python job compiles the
+GitHub Actions runs on every push and pull request on the explicitly pinned
+Ubuntu 24.04 runner. The official checkout, Python, Node, and artifact actions
+are configured for the Node 24 action runtime; the npm/Playwright job separately
+installs and uses Node 24. The Python job compiles the
 application, runs the full offline pytest suite, checks Ruff, validates frontend
 JavaScript syntax, and runs `pip check` plus a blocking `pip-audit` against the
 lite-compatible manifest. A separate Chromium job
