@@ -1,20 +1,137 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AEGIS Investigation Demo</title><link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1220">
+  <title>AEGIS · Incident Intelligence Protocol</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <main>
-    <header><p class="eyebrow">AI Evidence-Grounded Intelligence System</p><h1>Investigate an integration incident</h1><p>Choose one of twenty synthetic scenarios, run a bounded investigation, and inspect how each conclusion is supported.</p></header>
-    <section class="card controls"><label for="filter">Find a scenario</label><input id="filter" type="search" placeholder="Filter by ID, domain, or title"><p id="sample-count" class="muted"></p><label for="scenario">Scenario</label><select id="scenario"></select><textarea id="question" rows="3" aria-label="Investigation question"></textarea><button id="run">Run investigation</button><p id="status" role="status"></p></section>
-    <section class="card" id="result">
-      <div class="result-heading"><div><p class="eyebrow">Investigation report</p><h2 id="summary">Choose a scenario to begin.</h2></div><span id="status-badge" class="badge"></span></div>
-      <div class="meta"><span id="provider" class="badge"></span><span id="retrieval" class="badge"></span></div>
-      <div class="grid"><div><h3>Findings</h3><div id="findings"></div><h3>Recommended checks</h3><ul id="checks"></ul></div><div><h3>Evidence details</h3><div id="evidence"></div><h3>Agent trace</h3><ol id="trace"></ol></div></div>
-      <div class="grid"><div><h3>Contradictions</h3><ul id="contradictions"></ul></div><div><h3>Evidence gaps</h3><ul id="gaps"></ul></div></div>
-      <p class="note">Synthetic evidence only. Provider identity, uncertainty, and evidence limitations are part of the report.</p>
-    </section>
-  </main><script src="app.js"></script>
+  <div class="app-shell">
+    <header class="global-header">
+      <a class="brand" href="/demo/" aria-label="AEGIS Incident Intelligence home">
+        <span class="wordmark" aria-label="AEGIS Incident Intelligence Protocol"><strong class="wordmark-main">AEGIS</strong><span class="wordmark-rule" aria-hidden="true"></span><small>Incident Intelligence Protocol</small></span>
+      </a>
+      <div class="header-context">
+        <span class="environment-badge"><span class="status-dot" aria-hidden="true"></span> Synthetic environment</span>
+        <span id="readiness" class="readiness" role="status" aria-live="polite">Checking service…</span>
+      </div>
+    </header>
+
+    <div class="app-frame">
+      <nav class="nav-rail" aria-label="Workspace navigation">
+        <div class="nav-rail-label">Workspace</div>
+        <button class="nav-item is-active" type="button" data-nav="investigate" aria-label="Investigate workspace" aria-current="page">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 18 5-5 3 3 7-8"></path><path d="M15 8h4v4"></path></svg><span>Investigate</span>
+        </button>
+        <button class="nav-item" type="button" data-nav="scenarios" aria-label="Scenarios">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"></rect><rect x="14" y="4" width="6" height="6" rx="1"></rect><rect x="4" y="14" width="6" height="6" rx="1"></rect><rect x="14" y="14" width="6" height="6" rx="1"></rect></svg><span>Scenarios</span>
+        </button>
+        <button class="nav-item" type="button" data-nav="execution" aria-label="Execution trace">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4v16M6 7h9a3 3 0 0 1 0 6H9"></path><path d="M6 17h12"></path></svg><span>Execution</span>
+        </button>
+        <div class="nav-rail-footer"><span class="rail-pulse" aria-hidden="true"></span><small>LOCAL</small></div>
+      </nav>
+
+      <main class="main-content">
+        <section class="workspace-header" aria-labelledby="workspace-title">
+          <div>
+            <div class="breadcrumb"><span>AEGIS</span><i>/</i><span>Investigation workbench</span></div>
+            <h1 id="workspace-title">Incident investigation</h1>
+            <p id="workspace-subtitle">Correlate technical documentation with operational records to establish what the available evidence supports.</p>
+          </div>
+          <div class="workspace-state"><span class="state-label">Workspace state</span><strong id="workspace-status">Ready</strong></div>
+        </section>
+
+        <div class="workspace-views">
+        <section id="view-investigate" class="workspace-view is-active" data-view="investigate" aria-labelledby="workspace-title">
+        <section id="composer" class="command-area" aria-labelledby="composer-title">
+          <div class="command-heading">
+            <div><span class="section-kicker">01 / Investigation setup</span><h2 id="composer-title">Investigation setup</h2></div>
+            <span class="command-note">Questions remain symptom-oriented; conclusions are evidence-validated.</span>
+          </div>
+          <div class="composer-grid">
+            <div class="composer-field scenario-field">
+              <label for="filter">Search scenarios</label>
+              <div class="search-wrap"><span aria-hidden="true">⌕</span><input id="filter" type="search" placeholder="ID, domain, symptom" autocomplete="off"></div>
+              <p id="sample-count" class="field-note">Loading scenarios…</p>
+            </div>
+            <div class="composer-field">
+              <label for="scenario">Scenario selection</label>
+              <select id="scenario"></select>
+              <p class="field-note">Select an incident context from the synthetic operations lab.</p>
+            </div>
+            <div class="composer-field question-field">
+              <label for="question">Investigation question</label>
+              <textarea id="question" rows="3" aria-describedby="question-note"></textarea>
+              <p id="question-note" class="field-note">Edit the question to focus the investigation; do not assume a root cause.</p>
+            </div>
+            <div class="composer-action">
+              <div class="action-readiness"><strong id="action-readiness">Ready to investigate</strong><p id="action-message">Review the question, then run the bounded investigation.</p></div>
+              <button id="run" class="primary-action" type="button"><span class="action-icon" aria-hidden="true">↗</span> Run investigation</button>
+              <p id="status" class="request-status" role="status" aria-live="polite"></p>
+            </div>
+          </div>
+          <div class="synthetic-disclosure"><span aria-hidden="true">i</span><p>Demo data is synthetic. AEGIS validates citation identity and reports uncertainty instead of certifying a production root cause.</p></div>
+        </section>
+
+        <section id="empty-state" class="empty-state" aria-labelledby="empty-title" hidden>
+          <div class="empty-mark" aria-hidden="true"><span>INV</span><strong>→</strong><span>VERIFY</span></div>
+          <div><span class="section-kicker">Ready to investigate</span><h2 id="empty-title">Loading investigation scenarios</h2><p id="empty-description">The report will surface an evidence-supported assessment, explicit uncertainty, and the bounded execution trace.</p></div>
+        </section>
+
+        <section id="execution-indicator" class="execution-indicator" aria-live="polite" hidden>
+          <div class="execution-status"><span class="execution-pulse" aria-hidden="true"></span><div><span class="section-kicker">02 / Execution status</span><strong id="execution-label">Ready</strong><p id="execution-detail">The bounded workflow will correlate documentation, operational records, and validated citations.</p></div></div>
+          <button id="execution-action" class="quiet-action" type="button" data-nav="execution" hidden>Inspect execution trace <span aria-hidden="true">→</span></button>
+        </section>
+
+        <section id="report" class="report-shell" hidden aria-labelledby="assessment-title">
+          <div class="assessment-panel">
+            <div class="assessment-main"><div class="section-kicker">03 / Evidence-grounded assessment</div><h2 id="assessment-title">Evidence-backed assessment</h2><p id="summary"></p><p id="investigation-context" class="context-line"></p></div>
+            <div class="assessment-status"><span id="status-badge" class="status-badge"></span><span id="investigation-id" class="mono-label"></span></div>
+          </div>
+          <div class="diagnostic-strip"><div><span>Provider</span><strong id="provider">—</strong></div><div><span>Retrieval</span><strong id="retrieval">—</strong></div><div><span>Model</span><strong id="model">—</strong></div><div><span>Attempts</span><strong id="attempts">—</strong></div></div>
+
+          <div class="analysis-layout">
+            <section id="operational-analysis" class="analysis-panel operational-panel" aria-labelledby="operational-title">
+              <div class="panel-heading"><div><span class="section-kicker">Operational analysis</span><h3 id="operational-title">Findings and signals</h3></div><span id="finding-count" class="count-label"></span></div>
+              <div id="findings" class="finding-list"></div>
+              <div class="signal-heading"><span>Source coverage</span><span id="evidence-count" class="count-label"></span></div>
+              <div id="operations" class="operation-grid"></div>
+            </section>
+            <section id="decision-intelligence" class="analysis-panel decision-panel" aria-labelledby="decision-title">
+              <div class="panel-heading"><div><span class="section-kicker">Decision intelligence</span><h3 id="decision-title">Boundaries and next actions</h3></div></div>
+              <div class="decision-block"><span class="subsection-label">Recommended checks</span><div id="checks" class="check-list"></div></div>
+              <div class="decision-block"><span class="subsection-label">Uncertainty, gaps, and contradictions</span><div id="uncertainty" class="signal-list"></div></div>
+            </section>
+          </div>
+
+          <div class="detail-region">
+            <div class="detail-header"><div><span class="section-kicker">04 / Investigation details</span><h3>Traceability workspace</h3></div><div class="detail-tabs" role="tablist" aria-label="Investigation detail views"><button class="detail-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="detail-evidence" data-detail="evidence">Evidence explorer</button><button class="detail-tab" type="button" role="tab" aria-selected="false" aria-controls="detail-execution" data-detail="execution">Execution trace</button></div></div>
+            <div id="detail-evidence" class="detail-panel is-active" role="tabpanel"><div class="detail-panel-heading"><p>Canonical evidence records supporting this investigation. Expand a record to inspect its source and excerpt.</p><span class="detail-hint">Provenance ≠ certainty</span></div><div id="evidence" class="evidence-list"></div></div>
+            <div id="detail-execution" class="detail-panel" role="tabpanel" hidden><div class="detail-panel-heading"><p>Sanitized execution trace from the bounded investigation graph.</p><span class="detail-hint">No live stream implied</span></div><ol id="trace" class="trace-list"></ol></div>
+          </div>
+          <p class="report-footnote"><span aria-hidden="true">◆</span> A valid citation confirms provenance. It does not, by itself, prove factual correctness or certify a production root cause.</p>
+        </section>
+        </section>
+
+        <section id="view-scenarios" class="workspace-view" data-view="scenarios" aria-labelledby="scenarios-title" hidden>
+          <div class="view-heading"><div><span class="section-kicker">Scenario catalog</span><h2 id="scenarios-title">Scenarios</h2><p>Review the available synthetic incident contexts, then open one in Investigate.</p></div><span id="catalog-count" class="count-label"></span></div>
+          <div class="catalog-toolbar"><label for="catalog-filter">Search scenarios</label><input id="catalog-filter" type="search" placeholder="Search ID, domain, or symptom" autocomplete="off"></div>
+          <div id="scenario-catalog" class="scenario-catalog" aria-live="polite"></div>
+        </section>
+
+        <section id="view-execution" class="workspace-view" data-view="execution" aria-labelledby="execution-title" hidden>
+          <div class="view-heading"><div><span class="section-kicker">Execution details</span><h2 id="execution-title">Workflow timeline</h2><p>Inspect the actual bounded investigation trace for the current in-memory investigation.</p></div><span id="execution-view-status" class="status-badge">Ready</span></div>
+          <div id="execution-view-summary" class="execution-summary"><div><span class="subsection-label">Current state</span><strong id="execution-view-label">Ready</strong><p id="execution-view-detail">Run an investigation to populate execution details.</p></div><div id="execution-view-meta" class="execution-meta"></div></div>
+          <div id="execution-view-empty" class="view-empty"><h3>No execution trace yet</h3><p>Execution details will appear here after a completed investigation.</p><button class="quiet-action" type="button" data-nav="investigate">Return to Investigate <span aria-hidden="true">→</span></button></div>
+          <div id="execution-view-trace-panel" class="execution-trace-panel" hidden><div class="panel-heading"><div><span class="section-kicker">Execution trace</span><h3>Bounded workflow stages</h3></div><span class="detail-hint">Current session only</span></div><ol id="execution-view-trace" class="trace-list"></ol></div>
+        </section>
+        </div>
+      </main>
+    </div>
+  </div>
+  <script src="app.js"></script>
 </body>
 </html>
