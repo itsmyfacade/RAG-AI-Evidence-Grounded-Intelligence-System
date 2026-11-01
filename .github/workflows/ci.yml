@@ -127,6 +127,9 @@ jobs:
           AEGIS_EMBEDDING_LOCAL_FILES_ONLY: "true"
         run: python -m pytest tests -q
 
+      - name: Run Pyright type safety gate
+        run: npx --yes pyright@1.1.413 --pythonpath "$(command -v python)" --project pyrightconfig.json
+
       - name: Audit standard-profile dependencies
         id: standard-audit
         if: always()

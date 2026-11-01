@@ -137,6 +137,7 @@ def test_langchain_bedrock_adapter_uses_inference_profile_and_structured_output(
 
     llm = FakeLLM()
     result = BedrockProvider(llm=llm).generate("question", ["[DOC-INC-001-0] evidence"])
+    assert result.structured is not None
     assert result.provider == "bedrock"
     assert result.model == "us.amazon.nova-micro-v1:0"
     assert result.structured["findings"][0]["evidence_refs"] == ["DOC-INC-001-0"]
@@ -206,6 +207,7 @@ def test_schema_repair_preserves_grounding_and_uses_allowed_statuses():
         "Investigate duplicate webhook events in SCN-005",
         ["[DOC-INC-005-0] source_type=document; excerpt=consumer did not persist event_id values"],
     )
+    assert result.structured is not None
     assert llm.calls == 2
     assert result.structured["findings"][0]["status"] == "conclusion"
     repair = llm.messages[1][1][1]
@@ -241,6 +243,7 @@ def test_bedrock_truncated_output_gets_one_format_repair_attempt():
 
     llm = FakeLLM()
     result = BedrockProvider(llm=llm).generate("question", ["[DOC-INC-001-0] evidence"])
+    assert result.structured is not None
     assert llm.calls == 2
     assert result.structured["summary"] == "ok"
     assert result.token_usage == {"input_tokens": 4373, "output_tokens": 812, "total_tokens": 5185}
@@ -256,6 +259,7 @@ def test_configured_bedrock_max_tokens_reaches_chatbedrock(monkeypatch):
 
     with patch("langchain_aws.ChatBedrockConverse", return_value=FakeLLM()) as constructor:
         result = BedrockProvider().generate("question", ["[DOC-INC-001-0] evidence"])
+    assert result.structured is not None
     assert result.structured["summary"] == "ok"
     assert constructor.call_args.kwargs["max_tokens"] == 1200
 
@@ -286,4 +290,5 @@ def test_bedrock_text_content_block_is_supported():
             return response
 
     result = BedrockProvider(llm=FakeLLM()).generate("question", ["[DOC-INC-001-0] evidence"])
+    assert result.structured is not None
     assert result.structured["summary"] == "ok"

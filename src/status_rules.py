@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 
 from langchain_core.documents import Document
 
-from src.schemas import EvidenceRecord
+from src.schemas import EvidenceRecord, InvestigationStatus
 
 MIN_CORRELATED_FRACTION = 0.5
 
@@ -35,7 +35,7 @@ def _has_timestamp_conflict(logs: list[EvidenceRecord], deployments: list[Eviden
     return False
 
 
-def classify_status(documents: list[Document], operational: list[EvidenceRecord]) -> tuple[str, list[str], list[str]]:
+def classify_status(documents: list[Document], operational: list[EvidenceRecord]) -> tuple[InvestigationStatus, list[str], list[str]]:
     """Return status, evidence gaps, and contradictions without evaluator labels."""
     gaps: list[str] = []
     contradictions: list[str] = []

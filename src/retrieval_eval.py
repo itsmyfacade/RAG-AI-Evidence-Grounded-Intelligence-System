@@ -53,7 +53,8 @@ if __name__ == "__main__":
     parser.add_argument("--all-scenarios", action="store_true")
     args = parser.parse_args()
     cases = json.loads((Path(__file__).resolve().parents[1] / "data" / "evaluation" / "retrieval_cases.json").read_text(encoding="utf-8"))
-    result = evaluate_cases(cases, search, k=args.k)
+    metrics = evaluate_cases(cases, search, k=args.k)
+    result: dict[str, object] = {key: value for key, value in metrics.items()}
     if args.all_scenarios:
         result["scenario_retrieval"] = scenario_retrieval_diagnostics(search, k=args.k)
     print(json.dumps(result, indent=2))

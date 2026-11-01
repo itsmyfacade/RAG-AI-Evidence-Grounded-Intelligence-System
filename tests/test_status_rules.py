@@ -8,7 +8,7 @@ def _doc():
     return [Document(page_content="Relevant incident evidence", metadata={"document_id": "INC-001"})]
 
 
-def _log(index, deployment="DEP-001", event="EVT-001"):
+def _log(index: int, deployment: str | None = "DEP-001", event: str | None = "EVT-001"):
     return EvidenceRecord(evidence_id=f"SQL-{index}", source_type="log", source_id=f"REQ-{index}", excerpt="HTTP 500", metadata={"deployment_id": deployment or "", "event_id": event or "", "occurred_at": "2026-01-01T10:00:00Z"})
 
 

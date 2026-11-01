@@ -7,10 +7,10 @@ import httpx
 from src.api import app
 
 
-async def _request(method: str, path: str, **kwargs: object) -> httpx.Response:
+async def _request(method: str, path: str, json: dict[str, object] | None = None) -> httpx.Response:
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="http://aegis.test") as client:
-        return await client.request(method, path, **kwargs)
+        return await client.request(method, path, json=json)
 
 
 def test_health_ready_samples_and_demo_contract(monkeypatch) -> None:

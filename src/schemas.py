@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 EvidenceKind = Literal["document", "sql", "log", "deployment", "configuration", "ticket", "webhook"]
 SupportStatus = Literal["supported", "partially_supported", "unsupported", "unverified"]
+InvestigationStatus = Literal["completed", "insufficient_evidence", "escalated", "failed"]
 
 
 class EvidenceRecord(BaseModel):
@@ -56,7 +57,7 @@ class AgentTrace(BaseModel):
 class InvestigationReport(BaseModel):
     investigation_id: str
     question: str
-    status: Literal["completed", "insufficient_evidence", "escalated", "failed"]
+    status: InvestigationStatus
     summary: str
     findings: list[Finding] = Field(default_factory=list)
     claims: list[Claim] = Field(default_factory=list)

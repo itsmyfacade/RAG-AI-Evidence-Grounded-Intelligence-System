@@ -62,8 +62,7 @@ def samples():
     return []
 
 
-@app.post("/investigate", response_model=InvestigationResponse)
-def investigate(request: InvestigationRequest, http_request: Request = None):
+def _investigate(request: InvestigationRequest, http_request: Request | None) -> InvestigationResponse:
     if http_request is not None:
         client_key = http_request.client.host if http_request.client else "unknown"
         now = time.monotonic()
@@ -88,6 +87,16 @@ def investigate(request: InvestigationRequest, http_request: Request = None):
         raise HTTPException(status_code=503, detail="Investigation service unavailable") from exc
     finally:
         _slots.release()
+
+
+@app.post("/investigate", response_model=InvestigationResponse)
+def investigate_endpoint(request: InvestigationRequest, http_request: Request) -> InvestigationResponse:
+    return _investigate(request, http_request)
+
+
+def investigate(request: InvestigationRequest, http_request: Request | None = None) -> InvestigationResponse:
+    """Direct-call seam retained for offline tests and local callers."""
+    return _investigate(request, http_request)
 
 
 frontend = Path(__file__).resolve().parents[1] / "frontend"

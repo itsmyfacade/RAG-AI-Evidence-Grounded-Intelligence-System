@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from typing import TypedDict
+from typing import Literal, TypedDict
 from uuid import uuid4
 
 from langchain_core.documents import Document
@@ -12,7 +12,14 @@ from langgraph.graph import END, START, StateGraph
 from src.evidence import EvidenceRegistry, assess_claim_support
 from src.providers import ProviderError, get_provider
 from src.rag import search
-from src.schemas import AgentTrace, Claim, EvidenceRecord, Finding, InvestigationReport
+from src.schemas import (
+    AgentTrace,
+    Claim,
+    EvidenceRecord,
+    Finding,
+    InvestigationReport,
+    InvestigationStatus,
+)
 from src.settings import get_settings
 from src.sql_tools import OperationalEvidenceStore
 from src.status_rules import classify_status
@@ -40,18 +47,25 @@ class InvestigationState(TypedDict, total=False):
     trace: list[AgentTrace]
 
 
+def _required_text(state: InvestigationState, key: Literal["question", "investigation_id"]) -> str:
+    value = state.get(key)
+    if not isinstance(value, str) or not value:
+        raise ValueError(f"Investigation state is missing required '{key}'")
+    return value
+
+
 def _trace(state, step, status, detail=""):
     return [*state.get("trace", []), AgentTrace(step=step, status=status, detail=detail)]
 
 
 def supervisor(state: InvestigationState):
-    question = state["question"]
+    question = _required_text(state, "question")
     scenario_id = state.get("scenario_id") or next(iter(re.findall(r"SCN-\d{3}", question.upper())), None)
     return {"scenario_id": scenario_id, "attempts": state.get("attempts", 0) + 1, "trace": _trace(state, "supervisor", "completed", f"Selected document and operational research; scenario={scenario_id or 'unspecified'}")}
 
 
 def document_research(state: InvestigationState):
-    docs = search(state["question"], k=4)
+    docs = search(_required_text(state, "question"), k=4)
     evidence = [
         EvidenceRecord(
             evidence_id=f"DOC-{doc.metadata['document_id']}-{doc.metadata.get('chunk_index', 0)}",
@@ -195,7 +209,7 @@ def investigation_synthesis(state: InvestigationState):
     mode = get_settings().llm_mode
     evidence_text = [_evidence_brief(state, canonical_ids=mode != "local")]
     try:
-        generated = get_provider(mode).generate(state["question"], evidence_text)
+        generated = get_provider(mode).generate(_required_text(state, "question"), evidence_text)
         answer, provider = generated.text, generated.provider
         return {
             "answer": answer,
@@ -227,7 +241,7 @@ def _record_ids(records: list[EvidenceRecord], *, source_types: set[str] | None 
     return selected[:limit]
 
 
-def _report_summary(status: str, state: InvestigationState, documents: list[Document], operational: list[EvidenceRecord]) -> str:
+def _report_summary(status: InvestigationStatus, state: InvestigationState, documents: list[Document], operational: list[EvidenceRecord]) -> str:
     if status == "failed":
         return "Assessment unavailable: evidence validation rejected one or more citations."
     if status == "insufficient_evidence":
@@ -237,11 +251,15 @@ def _report_summary(status: str, state: InvestigationState, documents: list[Docu
     return f"Assessment: evidence is available for this investigation ({len(documents)} narrative passages and {len(operational)} structured records). It supports further diagnosis but does not prove a production root cause."
 
 
-def _report_findings(status: str, state: InvestigationState, registry: EvidenceRegistry, claims: list[Claim], structured: dict | None = None) -> list[Finding]:
+def _report_findings(status: InvestigationStatus, state: InvestigationState, registry: EvidenceRegistry, claims: list[Claim], structured: dict | None = None) -> list[Finding]:
     if structured and structured.get("findings"):
         findings = []
         for index, item in enumerate(structured["findings"], 1):
-            refs = [registry.resolve(reference).evidence_id for reference in item.get("evidence_refs", []) if registry.resolve(reference)]
+            refs = []
+            for reference in item.get("evidence_refs", []):
+                record = registry.resolve(reference)
+                if record is not None:
+                    refs.append(record.evidence_id)
             findings.append(Finding(finding_id=f"F-{index:03d}", statement=item["statement"], status=item["status"], claim_refs=[claim.claim_id for claim in claims], evidence_refs=refs))
         return findings
     documents = state.get("documents", [])
@@ -324,9 +342,12 @@ def validate_evidence(state: InvestigationState):
     structured_refs = [reference for item in structured.get("findings", []) for reference in item.get("evidence_refs", [])]
     unsupported = sorted(set(unsupported) | {reference for reference in structured_refs if registry.resolve(reference) is None})
     if state.get("provider_error"):
-        answer = "Investigation synthesis failed: " + state["provider_error"]
+        provider_error = state.get("provider_error")
+        if provider_error is None:
+            raise ValueError("Provider error state was unexpectedly empty")
+        answer = "Investigation synthesis failed: " + provider_error
         citations = []
-        status = "failed"
+        status: InvestigationStatus = "failed"
         evidence_gaps = ["The selected provider did not return a usable investigation report."]
         contradictions = []
     elif unsupported:
@@ -364,7 +385,7 @@ def validate_evidence(state: InvestigationState):
     trace = _trace(state, "evidence_verification", "completed", f"Validated {len(citations)} citations")
     findings = _report_findings(status, state, registry, claims, structured)
     report = InvestigationReport(
-        investigation_id=state["investigation_id"], question=state["question"], status=status,
+        investigation_id=_required_text(state, "investigation_id"), question=_required_text(state, "question"), status=status,
         summary=_report_summary(status, state, state.get("documents", []), state.get("operational_evidence", [])), findings=findings,
         claims=claims, evidence=state.get("evidence", []), hypotheses=[finding.statement for finding in findings if finding.status == "hypothesis"],
         recommended_checks=_recommended_checks(state, status),

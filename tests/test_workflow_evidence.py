@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 from langchain_core.documents import Document
 
-from src.agents import _evidence_brief, run_investigation, validate_evidence
+from src.agents import InvestigationState, _evidence_brief, run_investigation, validate_evidence
 from src.dataset import generate_database
 from src.schemas import EvidenceRecord
 
@@ -44,7 +44,7 @@ def test_unknown_citation_still_fails_validation():
         "mode": "local",
         "attempts": 1,
     }
-    result = validate_evidence(state)
+    result = validate_evidence(InvestigationState(**state))
     assert result["report"].status == "failed"
     assert result["citations"] == []
 
@@ -124,7 +124,7 @@ def test_scn005_evidence_brief_prioritizes_aligned_incident_and_surfaces_cause()
             EvidenceRecord(evidence_id="SQL-SCN-005-001", source_type="log", source_id="REQ-005-00", excerpt="HTTP 500 webhook error", scenario_id="SCN-005"),
         ],
     }
-    brief = _evidence_brief(state)
+    brief = _evidence_brief(InvestigationState(**state))
     assert brief.index("DOC-INC-005-0") < brief.index("DOC-INC-002-0")
     assert "documented_causal_statements" in brief
     assert "did not persist event_id values" in brief
@@ -141,7 +141,7 @@ def test_evidence_brief_does_not_promote_cross_incident_document():
             excerpt="A consumer processed webhook retries as new transactions.", metadata={"category": "incident"},
         )],
     }
-    brief = _evidence_brief(state)
+    brief = _evidence_brief(InvestigationState(**state))
     assert "LOWER-CONFIDENCE OR CROSS-INCIDENT BACKGROUND" in brief
     assert "classification=not direct proof of this scenario" in brief
 
@@ -154,7 +154,7 @@ def test_evidence_brief_marks_incident_without_explicit_cause():
             excerpt="Webhook delivery issue observed. Engineers reviewed delivery logs and retry counts.", metadata={"category": "incident"},
         )],
     }
-    brief = _evidence_brief(state)
+    brief = _evidence_brief(InvestigationState(**state))
     assert "DOC-INC-002-0" in brief
     assert "none explicitly detected" in brief
 

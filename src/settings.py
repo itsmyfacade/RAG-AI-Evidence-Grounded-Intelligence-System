@@ -100,7 +100,7 @@ def get_settings() -> Settings:
     return Settings.from_environment()
 
 
-def provider_status() -> dict[str, str | bool]:
+def provider_status() -> dict[str, str | int | bool]:
     configuration = get_settings()
     return {
         "llm_mode": configuration.llm_mode,

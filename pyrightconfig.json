@@ -1,0 +1,21 @@
+{
+  "include": [
+    "src",
+    "tests",
+    "generate_data.py",
+    "aws_diagnostic.py",
+    "bedrock_smoke.py",
+    "mantle_smoke.py"
+  ],
+  "exclude": [
+    ".venv",
+    "node_modules",
+    "data",
+    ".pytest_cache",
+    ".pytest_runtime",
+    ".ruff_cache",
+    ".chroma_local"
+  ],
+  "typeCheckingMode": "basic",
+  "pythonVersion": "3.12"
+}

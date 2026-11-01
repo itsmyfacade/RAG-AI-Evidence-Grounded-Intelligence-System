@@ -73,11 +73,12 @@ def test_local_embeddings_use_configured_model_and_cache_policy(monkeypatch):
             self.instances.append(self)
 
     fake_module = types.ModuleType("sentence_transformers")
-    fake_module.SentenceTransformer = FakeSentenceTransformer
+    setattr(fake_module, "SentenceTransformer", FakeSentenceTransformer)
     monkeypatch.setitem(sys.modules, "sentence_transformers", fake_module)
 
     embeddings = LocalEmbeddings()
 
-    assert embeddings.model is FakeSentenceTransformer.instances[0]
-    assert embeddings.model.kwargs["local_files_only"] is True
-    assert embeddings.model.args[0] == "all-MiniLM-L6-v2"
+    model = FakeSentenceTransformer.instances[0]
+    assert embeddings.model is model
+    assert model.kwargs["local_files_only"] is True
+    assert model.args[0] == "all-MiniLM-L6-v2"
