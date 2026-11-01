@@ -167,9 +167,9 @@ Reports include status, summary, findings, evidence references and excerpts, hyp
 
 The hosted Render demo remains local-only and does not require AWS credentials. S3 synchronization, IAM examples, Bedrock diagnostics, AgentCore packaging guidance, and GovCloud design notes are available in `docs/`. No AWS resources are provisioned by this repository.
 
-## Tests and CI
+## Tests, QA automation, and CI
 
-Normal tests are offline and do not call Bedrock, Gemini, S3, IAM, or Hugging Face. Python 3.12 in GitHub Actions and Docker is the compatibility baseline. Standard vector retrieval is tested separately from the lite CI path because it requires a locally cached embedding model; the hosted demo does not require that model.
+Normal tests are offline and do not call Bedrock, Gemini, S3, IAM, or Hugging Face. Python 3.12 in GitHub Actions and Docker is the compatibility baseline. Standard vector retrieval is tested separately from the lite CI path because it requires a locally cached embedding model; the hosted demo does not require that model. The layered QA commands and browser-test boundaries are documented in [`docs/QA_AUTOMATION.md`](docs/QA_AUTOMATION.md).
 
 ```powershell
 python -m compileall -q src tests generate_data.py aws_diagnostic.py
@@ -191,7 +191,7 @@ these labels are not private held-out ground truth. Any match rate is a syntheti
 check, not a diagnosis-accuracy benchmark. Expected labels are never loaded by the serving API
 or graph.
 
-GitHub Actions runs continuous integration on every push and pull request: Python 3.12, the pinned full dependency manifest, offline/local environment variables, compilation, pytest, Ruff, and frontend syntax validation. Current status is shown by the CI badge above. The repository does not include continuous delivery; the Render demo is deployed separately.
+GitHub Actions runs continuous integration on every push and pull request: Python 3.12, the pinned full dependency manifest, offline/local environment variables, compilation, pytest and HTTPX API contracts, Ruff, dependency checks, and frontend syntax validation. A separate Chromium/Playwright job exercises the local hosted-lite server and uploads browser reports, screenshots, and traces when available. Current status is shown by the CI badge above. The repository does not include continuous delivery; the Render demo is deployed separately.
 
 ## Security and limitations
 
