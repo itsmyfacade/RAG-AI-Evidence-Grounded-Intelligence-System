@@ -33,7 +33,10 @@ jobs:
           AEGIS_DEPLOYMENT_PROFILE: lite
           AEGIS_EMBEDDINGS: local
           AEGIS_EMBEDDING_LOCAL_FILES_ONLY: "true"
-        run: python -m pytest tests -v --ignore=tests/test_rag.py
+        run: >-
+          python -m pytest tests -v
+          --ignore=tests/test_rag.py
+          --deselect=tests/test_foundation.py::test_configured_bedrock_max_tokens_reaches_chatbedrock
 
       - name: Static quality checks
         run: python -m ruff check src tests generate_data.py aws_diagnostic.py bedrock_smoke.py mantle_smoke.py
@@ -122,7 +125,10 @@ jobs:
           AEGIS_LLM: local
           AEGIS_EMBEDDINGS: local
           AEGIS_EMBEDDING_LOCAL_FILES_ONLY: "true"
-        run: python -m pytest tests/test_rag.py -q
+        run: >-
+          python -m pytest -q
+          tests/test_rag.py
+          tests/test_foundation.py::test_configured_bedrock_max_tokens_reaches_chatbedrock
 
       - name: Audit standard-profile dependencies
         id: standard-audit
