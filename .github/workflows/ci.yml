@@ -146,7 +146,7 @@ jobs:
           {
             echo "### Standard-profile dependency audit"
             echo ""
-            echo "This report is informational because the optional standard profile currently contains unresolved ChromaDB advisories."
+            echo "This report is informational because the optional standard profile currently contains unresolved ChromaDB advisories: PYSEC-2026-311, PYSEC-2026-3813, PYSEC-2026-3814, and PYSEC-2026-3815."
             echo "pip-audit exit code: ${audit_status}"
           } >> "$GITHUB_STEP_SUMMARY"
           if [ "$audit_status" -ne 0 ]; then

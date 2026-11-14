@@ -91,6 +91,21 @@ local process memory and provider cold-start behavior are environment-specific.
 If standard local RAG is enabled on a 512 MB instance, memory exhaustion remains
 expected and is outside the supported hosted profile.
 
+## Optional standard-profile security status
+
+The optional standard profile currently installs the latest available ChromaDB
+release, `1.5.9`, together with `langchain-chroma` and Sentence Transformers.
+The Python 3.12 dependency audit reports `PYSEC-2026-311` (also surfaced through
+its advisory aliases), `PYSEC-2026-3813`, `PYSEC-2026-3814`, and
+`PYSEC-2026-3815`. The advisory database currently provides no fixed versions,
+and the latest available ChromaDB release remains affected. These findings
+concern ChromaDB server or authenticated multi-tenant authorization paths; this
+application uses Chroma locally through the embedded client and does not expose
+a Chroma server in the hosted-lite profile. That deployment boundary reduces
+exposure but does not make the vulnerable package secure. The standard profile
+must remain optional and isolated from public deployment until upstream fixes
+are available and the audit is clean.
+
 ## Vercel frontend preparation
 
 `frontend/vercel.json` prepares the static frontend for a Vercel project whose

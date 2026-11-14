@@ -256,7 +256,7 @@ The intended future frontend project is named `aegis` with `frontend` as its pro
 - Citation identity checks and lexical claim support are conservative heuristics, not semantic entailment.
 - The demo is unauthenticated and uses in-process quotas. A production service would need stronger identity, durable rate limiting, monitoring, and secret management.
 - The synthetic dataset and benchmark do not establish production reliability or diagnosis accuracy.
-- The optional standard dependency profile has unresolved ChromaDB advisories and is not the hosted profile.
+- The optional standard dependency profile currently pins the latest available ChromaDB release, `1.5.9`, but pip-audit reports unresolved advisories `PYSEC-2026-311`, `PYSEC-2026-3813`, `PYSEC-2026-3814`, and `PYSEC-2026-3815` with no published fix versions. The standard profile is not the hosted profile and should remain isolated from public deployment until upstream fixes are available and validated.
 
 ## Project documentation
 
