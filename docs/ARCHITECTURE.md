@@ -11,7 +11,7 @@ flowchart LR
     G --> S[Supervisor]
     S --> D[Document research]
     D --> L[Lite BM25 retrieval]
-    D --> C[Optional Chroma semantic retrieval]
+    D --> C[Optional local semantic vector index]
     G --> O[Operations analysis]
     O --> Q[Read-only parameterized SQLite]
     G --> Y[Synthesis provider]
@@ -31,10 +31,14 @@ flowchart LR
 1. The browser submits a symptom-oriented question and optional scenario ID.
 2. FastAPI validates the request, applies concurrency and quota limits, and starts one bounded investigation.
 3. The LangGraph workflow runs sequentially through supervisor, document research, operations analysis, synthesis, and evidence verification.
-4. Lite mode uses cached deterministic BM25-style lexical ranking. Standard mode can use the optional Chroma and Sentence Transformer profile.
+4. Lite mode uses cached deterministic BM25-style lexical ranking. Standard mode uses Sentence Transformer embeddings with a small local JSON vector index that preserves document IDs and metadata filters.
 5. SQLite evidence is read through parameterized tools. Evaluation labels are not loaded by serving code.
 6. The evidence registry validates citation identity and applies a conservative lexical claim-support heuristic. This is not semantic entailment.
 7. The API returns a typed report with findings, evidence, gaps, contradictions, provider identity, retrieval mode, and a sanitized execution trace.
+
+For backward compatibility, the standard semantic path retains the existing
+`retrieval_mode="chroma"` response label even though the implementation no
+longer installs or imports ChromaDB.
 
 ## Deployment boundaries
 

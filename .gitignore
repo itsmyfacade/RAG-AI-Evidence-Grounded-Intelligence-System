@@ -3,6 +3,7 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .chroma_*/
+.aegis_vectors_*.json
 .env
 .env.*
 !.env.example

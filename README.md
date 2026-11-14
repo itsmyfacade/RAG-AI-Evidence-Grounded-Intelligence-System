@@ -32,7 +32,7 @@ The three surfaces answer different questions. Interactive scenarios exercise th
 - Sequential LangGraph workflow: supervisor, document research, operations analysis, investigation synthesis, and evidence validation.
 - Lite retrieval using cached deterministic BM25-style lexical ranking.
 - Legacy lexical profile retained for historical comparisons.
-- Optional local Chroma and Sentence Transformer retrieval profile.
+- Optional local Sentence Transformer retrieval profile with a small file-backed semantic vector index.
 - Read-only parameterized SQLite operational evidence tools.
 - Citation identity validation and conservative lexical claim-support checks.
 - Explicit evidence gaps, contradictions, hypotheses, findings, provider identity, and retrieval mode.
@@ -51,7 +51,7 @@ flowchart LR
     G --> S[Supervisor]
     S --> D[Document research]
     D --> L[Lite BM25 retrieval]
-    D --> C[Optional Chroma retrieval]
+    D --> C[Optional local semantic vector index]
     G --> O[Operations analysis]
     O --> Q[Parameterized SQLite]
     G --> Y[Local or explicitly selected provider]
@@ -173,11 +173,11 @@ Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:8000/investigate" -Content
 
 ### Lite
 
-The lite profile reads the small JSON document corpus directly and uses cached BM25-style lexical ranking. It does not import Torch, Sentence Transformers, or Chroma. Set `AEGIS_RETRIEVAL_PROFILE=legacy` to reproduce the historical raw lexical baseline. Set `AEGIS_RETRIEVAL_ABSTENTION=true` to enable the calibrated evidence score gate.
+The lite profile reads the small JSON document corpus directly and uses cached BM25-style lexical ranking. It does not import Torch or Sentence Transformers. Set `AEGIS_RETRIEVAL_PROFILE=legacy` to reproduce the historical raw lexical baseline. Set `AEGIS_RETRIEVAL_ABSTENTION=true` to enable the calibrated evidence score gate.
 
 ### Standard
 
-The optional standard profile uses `all-MiniLM-L6-v2` embeddings with Chroma. It requires the optional dependency set and locally available model files. It is not the hosted profile and has separate dependency-audit findings.
+The optional standard profile uses `all-MiniLM-L6-v2` embeddings with a small local JSON vector index. It preserves document IDs, metadata equality filters, cosine-similarity ranking, and offline persistence without a vector database service. It requires the optional dependency set and locally available model files. It is not the hosted profile.
 
 ## Data generation
 
@@ -233,9 +233,9 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-GitHub Actions runs lightweight Python quality, API, frontend syntax, browser, and standard-profile reporting jobs. Heavy benchmark reproduction remains a documented local command rather than a required per-push job.
+GitHub Actions runs lightweight Python quality, API, frontend syntax, browser, and standard-profile security-gate jobs. Heavy benchmark reproduction remains a documented local command rather than a required per-push job.
 
-The latest local release-preflight validation recorded **87 Python tests passed** with one existing ChromaDB deprecation warning, **9 Playwright browser tests passed**, Ruff passed, Python compilation passed, JavaScript syntax checks passed, benchmark, recorded-demo, and Vercel JSON validation passed, and `npm audit --audit-level=high` reported **0 vulnerabilities**. These checks establish local regression evidence; they do not guarantee public Render reliability.
+The latest local release-preflight validation recorded **88 Python tests passed**, **9 Playwright browser tests passed**, Ruff passed, Python compilation passed, JavaScript syntax checks passed, benchmark, recorded-demo, and Vercel JSON validation passed, and `npm audit --audit-level=high` reported **0 vulnerabilities**. These checks establish local regression evidence; they do not guarantee public Render reliability.
 
 ## Docker and Render
 
@@ -249,14 +249,14 @@ The intended future frontend project is named `aegis` with `frontend` as its pro
 
 ## Security and limitations
 
-- `.env`, credentials, databases, Chroma indexes, caches, archives, and virtual environments are ignored.
+- `.env`, credentials, databases, semantic indexes, caches, archives, and virtual environments are ignored.
 - SQL access is read-only and parameterized.
 - Public errors are sanitized.
 - Retrieved documents are treated as untrusted evidence, never executable instructions.
 - Citation identity checks and lexical claim support are conservative heuristics, not semantic entailment.
 - The demo is unauthenticated and uses in-process quotas. A production service would need stronger identity, durable rate limiting, monitoring, and secret management.
 - The synthetic dataset and benchmark do not establish production reliability or diagnosis accuracy.
-- The optional standard dependency profile currently pins the latest available ChromaDB release, `1.5.9`, but pip-audit reports unresolved advisories `PYSEC-2026-311`, `PYSEC-2026-3813`, `PYSEC-2026-3814`, and `PYSEC-2026-3815` with no published fix versions. The standard profile is not the hosted profile and should remain isolated from public deployment until upstream fixes are available and validated.
+- The optional standard dependency profile uses a local semantic vector index and does not install ChromaDB. It remains separate from the hosted-lite profile because Sentence Transformer model files are larger and environment-dependent.
 
 ## Project documentation
 

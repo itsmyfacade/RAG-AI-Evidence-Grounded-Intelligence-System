@@ -11,7 +11,7 @@ The initial hosted profile needed to remain lightweight enough for a constrained
 ## Technical decisions
 
 - Preserve the existing FastAPI and LangGraph contracts.
-- Keep a lite profile that does not require model downloads or Chroma.
+- Keep a lite profile that does not require model downloads or the semantic vector index.
 - Add cached BM25-style ranking with deterministic title and category weighting.
 - Retain the legacy ranker for historical comparisons.
 - Add an opt-in evidence score gate for retrieval-level abstention.
