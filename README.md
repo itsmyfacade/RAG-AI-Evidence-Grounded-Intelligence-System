@@ -263,7 +263,6 @@ The intended future frontend project is named `aegis` with `frontend` as its pro
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): runtime and deployment architecture.
 - [`docs/AEGIS_CASE_STUDY.md`](docs/AEGIS_CASE_STUDY.md): engineering challenge, decisions, measurements, and limitations.
 - [`docs/PHASE3_RELEASE_EVIDENCE.md`](docs/PHASE3_RELEASE_EVIDENCE.md): sanitized benchmark evidence and reproduction.
-- [`docs/PROFESSIONAL_INTRODUCTIONS.md`](docs/PROFESSIONAL_INTRODUCTIONS.md): truthful portfolio and interview wording.
 - [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md): Docker and Render boundaries.
 - [`docs/QA_AUTOMATION.md`](docs/QA_AUTOMATION.md): validation layers and browser-test boundaries.
 - [`docs/HANDS_ON.md`](docs/HANDS_ON.md): interview-oriented verification exercises.
