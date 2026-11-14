@@ -10,21 +10,22 @@
 <body>
   <main class="review-shell">
     <header class="review-header">
-      <a class="brand" href="/demo/" aria-label="Return to AEGIS"><span class="wordmark"><strong class="wordmark-main">AEGIS</strong><span class="wordmark-rule" aria-hidden="true"></span><small>Ground-truth review</small></span></a>
-      <div class="review-header-actions"><a class="review-back" href="/demo/">Back to workbench</a><span class="environment-badge">Local review tool</span></div>
+      <a class="brand" href="./" aria-label="Return to AEGIS"><span class="wordmark"><strong class="wordmark-main">AEGIS</strong><span class="wordmark-rule" aria-hidden="true"></span><small>Ground-truth review</small></span></a>
+      <div class="review-header-actions"><a class="review-back" href="./">Back to workbench</a><span class="environment-badge">Local review tool</span></div>
     </header>
     <section class="review-intro" aria-labelledby="review-title">
       <span class="section-kicker">Phase 4 / Human review</span>
       <h1 id="review-title">Ground-truth review packet</h1>
       <p>Load the generated review packet locally. Decisions remain separate from serving data and are never marked automatically.</p>
-      <label class="file-loader" for="packet-file"><span>Choose review packet</span><input id="packet-file" type="file" accept="application/json,.json"><small>JSON only. Use the generated 40-case packet. It stays in your browser.</small></label>
+      <div class="review-file-loaders"><label class="file-loader" for="packet-file"><span>Choose review packet</span><input id="packet-file" type="file" accept="application/json,.json"><small>JSON only. Use the generated 40-case packet. It stays in your browser.</small></label><label class="file-loader" for="decisions-file"><span>Import saved decisions</span><input id="decisions-file" type="file" accept="application/json,.json"><small>Optional. Load an exported decision file after the matching packet.</small></label></div>
       <p id="review-status" class="field-note" role="status" aria-live="polite">No packet loaded.</p>
+      <p id="storage-status" class="field-note review-storage-status" role="status" aria-live="polite">No saved review state detected.</p>
       <div id="review-empty-state" class="review-empty-state"><div class="review-empty-mark" aria-hidden="true">40</div><div><strong>One case at a time, with the evidence beside it.</strong><p>Load the packet, inspect the expected sources and distractors, record a decision, then move to the next case. Export stays locked until every case has a non-pending decision.</p></div></div>
       <ol class="review-steps" aria-label="Review process"><li><span>01</span><div><strong>Inspect</strong><small>Question, expected evidence, excerpts, and distractors.</small></div></li><li><span>02</span><div><strong>Decide</strong><small>Confirm, reject, or mark the case ambiguous.</small></div></li><li><span>03</span><div><strong>Export</strong><small>Save reviewer decisions separately from serving data.</small></div></li></ol>
     </section>
     <section id="review-workspace" class="review-workspace" hidden aria-labelledby="case-title">
-      <div class="review-progress-panel"><div class="review-progress-stats"><div><span>Total cases</span><strong id="review-total">0</strong></div><div><span>Reviewed</span><strong id="reviewed-count">0</strong></div><div><span>Pending</span><strong id="pending-count">0</strong></div><div><span>Progress</span><strong id="review-progress-label">0%</strong></div></div><div class="review-progress-track" aria-hidden="true"><span id="review-progress-bar"></span></div></div>
-      <div class="review-toolbar"><button id="previous-case" class="quiet-action" type="button">← Previous</button><strong id="case-position">Case 0 of 0</strong><button id="next-case" class="quiet-action" type="button">Next →</button></div>
+      <div class="review-progress-panel"><div class="review-progress-stats"><div><span>Total cases</span><strong id="review-total">0</strong></div><div><span>Reviewed</span><strong id="reviewed-count">0</strong></div><div><span>Pending</span><strong id="pending-count">0</strong></div><div><span>Ambiguous</span><strong id="ambiguous-count">0</strong></div><div><span>Progress</span><strong id="review-progress-label">0%</strong></div></div><div class="review-progress-track" aria-hidden="true"><span id="review-progress-bar"></span></div></div>
+      <div class="review-toolbar"><button id="previous-case" class="quiet-action" type="button">← Previous</button><strong id="case-position">Case 0 of 0</strong><button id="next-case" class="quiet-action" type="button">Next →</button><button id="reset-review" class="quiet-action" type="button">Reset saved decisions</button></div>
       <article class="review-card">
         <div class="review-meta"><span id="case-id" class="mono-label"></span><span id="case-label" class="status-badge"></span></div>
         <h2 id="case-title"></h2>
@@ -34,7 +35,7 @@
         <div class="decision-form"><label for="decision">Review decision<select id="decision"><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="rejected">Rejected</option><option value="ambiguous">Ambiguous</option></select></label><label for="review-notes">Review notes<textarea id="review-notes" rows="3" placeholder="Record the evidence or wording issue you found."></textarea></label><button id="save-decision" class="primary-action" type="button">Save decision</button></div>
       </article>
     </section>
-    <section class="review-export"><div><span class="section-kicker">Separate artifact</span><h2>Review state</h2><p>Export becomes available after every case has a non-pending decision. The file contains reviewer decisions and notes, not serving configuration.</p></div><button id="export-review" class="quiet-action" type="button" disabled>Export decisions (complete review first)</button></section>
+    <section class="review-export"><div><span class="section-kicker">Separate artifact</span><h2>Review state</h2><p>Export is available at any point. The file contains reviewer decisions and notes, not serving configuration. The export remains the portable backup.</p></div><button id="export-review" class="quiet-action" type="button" disabled>Export review decisions</button></section>
   </main>
   <script src="review.js"></script>
 </body>
