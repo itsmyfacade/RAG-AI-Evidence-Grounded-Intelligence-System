@@ -56,6 +56,16 @@ def test_standard_and_lite_paths_are_explicitly_separate(monkeypatch):
     assert rag.search("question", k=1)[0].metadata["document_id"] == "INC-001"
 
 
+def test_standard_profile_uses_local_vector_store_without_chroma(monkeypatch, tmp_path):
+    monkeypatch.setenv("AEGIS_DEPLOYMENT_PROFILE", "standard")
+    monkeypatch.setattr(rag, "get_embeddings", lambda: object())
+    monkeypatch.setattr(rag, "_vector_index_path", lambda provider: tmp_path / f"{provider}.json")
+    rag._store.cache_clear()
+    assert isinstance(rag._store("local"), rag.LocalVectorStore)
+    assert "chromadb" not in sys.modules
+    assert "langchain_chroma" not in sys.modules
+
+
 def test_local_vector_store_orders_by_similarity(tmp_path):
     store = LocalVectorStore(tmp_path / "vectors.json", FakeEmbeddings())
     store.rebuild(

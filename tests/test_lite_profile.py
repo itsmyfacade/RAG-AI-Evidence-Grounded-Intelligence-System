@@ -2,7 +2,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-from src import rag
 from src.agents import run_investigation
 from src.dataset import generate_database
 
@@ -16,16 +15,6 @@ def test_lite_import_does_not_load_ml_or_chroma():
         cwd=Path(__file__).resolve().parents[1],
     )
     assert result.stdout.strip() == "False"
-
-
-def test_standard_profile_uses_local_vector_store_without_chroma(monkeypatch, tmp_path):
-    monkeypatch.setenv("AEGIS_DEPLOYMENT_PROFILE", "standard")
-    monkeypatch.setattr(rag, "get_embeddings", lambda: object())
-    monkeypatch.setattr(rag, "_vector_index_path", lambda provider: tmp_path / f"{provider}.json")
-    rag._store.cache_clear()
-    assert isinstance(rag._store("local"), rag.LocalVectorStore)
-    assert "chromadb" not in sys.modules
-    assert "langchain_chroma" not in sys.modules
 
 
 def test_lite_investigations_keep_graph_and_evidence(monkeypatch, tmp_path):
