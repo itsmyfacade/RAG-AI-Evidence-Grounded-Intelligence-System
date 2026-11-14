@@ -1,0 +1,29 @@
+{
+  "recorded_mode": "deterministic_local_recording",
+  "recorded_at": "2026-11-14",
+  "scenario_id": "SCN-005",
+  "question": "Investigate duplicate webhook events in SCN-005",
+  "status": "completed",
+  "provider": "local",
+  "model": "deterministic-local",
+  "retrieval_mode": "lexical",
+  "summary": "Assessment: evidence is available for this investigation (4 narrative passages and 18 structured records). It supports further diagnosis but does not prove a production root cause.",
+  "findings": [
+    {"finding_id": "F-001", "status": "observation", "statement": "Observed fact: 4 narrative passages and 18 structured operational records were available to the investigation.", "evidence_refs": ["DOC-INC-002-0", "DOC-API-005-0", "DOC-INC-005-0"]},
+    {"finding_id": "F-002", "status": "observation", "statement": "Observed fact: operational evidence spans configuration, deployment, log, webhook sources; timestamps and identifiers should be correlated before assigning a root cause.", "evidence_refs": ["SQL-SCN-005-001", "SQL-SCN-005-002"]},
+    {"finding_id": "F-003", "status": "hypothesis", "statement": "Hypothesis: webhook delivery or duplicate-processing behavior is plausible from the available event records; confirm idempotency and acknowledgement state before concluding.", "evidence_refs": ["WEBHOOK-SCN-005-001"]}
+  ],
+  "evidence_gaps": [],
+  "contradictions": [],
+  "recommended_checks": [
+    "Compare webhook event IDs, delivery status, attempt counts, and acknowledgement timestamps for duplicate or delayed delivery.",
+    "Correlate deployment and configuration timestamps with the first affected request IDs before and after the change."
+  ],
+  "agent_trace": [
+    {"step": "supervisor", "status": "completed", "detail": "Selected document and operational research; scenario=SCN-005"},
+    {"step": "document_research", "status": "completed", "detail": "Retrieved 4 document passages"},
+    {"step": "operations_analysis", "status": "completed", "detail": "Returned 18 structured operational records"},
+    {"step": "investigation_synthesis", "status": "completed", "detail": "Used provider=local; model=deterministic-local"},
+    {"step": "evidence_verification", "status": "completed", "detail": "Validated 22 citations"}
+  ]
+}

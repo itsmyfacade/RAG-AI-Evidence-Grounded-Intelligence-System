@@ -1,0 +1,48 @@
+{
+  "artifact_schema": "aegis-phase3-showcase-v1",
+  "source_artifact": "phase3-optimized-final-run1-result.json",
+  "dataset_version": "aegis-phase2-v1",
+  "dataset_checksum": "51b7c2971014d941c06467ad8fa30229eb547384a162eedba1194206fc553d8d",
+  "corpus_checksum": "6ee1691ca01258a9db0a2f8ae922f16f7a551165cdee507b5f40a71fa6833ccf",
+  "corpus_documents": 90,
+  "evaluation_cases": 1200,
+  "splits": {"development": 700, "validation": 200, "held_out": 300},
+  "execution_mode": "benchmark_artifact",
+  "baseline": {
+    "profile": "legacy lexical",
+    "recall_at_5": 0.631481,
+    "mrr": 0.51044,
+    "ndcg_at_5": 0.528479,
+    "evidence_coverage": 0.714352,
+    "correct_abstention": 0.0,
+    "false_answer": 1.0,
+    "p95_ms": 1.422
+  },
+  "optimized": {
+    "profile": "BM25 lexical plus score gate",
+    "recall_at_5": 0.8375,
+    "mrr": 0.855903,
+    "ndcg_at_5": 0.846162,
+    "evidence_coverage": 0.842593,
+    "correct_abstention": 0.233333,
+    "false_answer": 0.766667,
+    "p95_ms": 2.585,
+    "abstention_threshold": 12.0
+  },
+  "categories": {
+    "api_authentication": {"recall_at_5": 1.0, "evidence_coverage": 1.0},
+    "architecture": {"recall_at_5": 1.0, "evidence_coverage": 1.0},
+    "data_etl": {"recall_at_5": 1.0, "evidence_coverage": 1.0},
+    "incidents_failures": {"recall_at_5": 0.852778, "evidence_coverage": 0.863889},
+    "mixed_source": {"recall_at_5": 0.006667, "evidence_coverage": 0.03},
+    "runbooks_operations": {"recall_at_5": 1.0, "evidence_coverage": 1.0},
+    "security": {"recall_at_5": 1.0, "evidence_coverage": 1.0},
+    "ambiguous_insufficient": {"correct_abstention": 0.233333}
+  },
+  "limitations": [
+    "Synthetic benchmark artifact, not production accuracy.",
+    "Confidence intervals and full methodology remain in the source result artifact.",
+    "Mixed-source retrieval and ambiguous-case abstention remain known weaknesses.",
+    "Human review is pending."
+  ]
+}

@@ -1,3 +1,8 @@
+import math
+import re
+from collections import Counter
+from functools import lru_cache
+
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 
@@ -59,7 +64,12 @@ def build_vectorstore():
 def search(question, k=None, metadata_filter=None):
     configuration = get_settings()
     if configuration.deployment_profile == "lite":
-        return _lexical_search(question, k=k, metadata_filter=metadata_filter)
+        if not configuration.retrieval_abstention:
+            return _lexical_search(question, k=k, metadata_filter=metadata_filter)
+        ranked = _lexical_search_with_scores(question, k=k, metadata_filter=metadata_filter)
+        if not retrieval_is_sufficient(ranked, minimum_score=configuration.retrieval_abstention_threshold):
+            return []
+        return [document for document, _ in ranked]
     provider = configuration.embeddings_mode
     requested_k = k or configuration.retrieval_k
     results = _store(provider).similarity_search(question, k=requested_k, filter=metadata_filter)
@@ -89,12 +99,17 @@ def retrieval_mode() -> str:
 
 def _lexical_documents():
     """Load small narrative documents without splitters, Chroma, or ML models."""
+    return list(_cached_lexical_documents(str(get_settings().dataset_path)))
+
+
+@lru_cache(maxsize=8)
+def _cached_lexical_documents(dataset_path: str):
     import hashlib
     import json
     from pathlib import Path
 
     documents = []
-    for path in sorted(Path(get_settings().dataset_path).glob("*.json")):
+    for path in sorted(Path(dataset_path).glob("*.json")):
         record = json.loads(path.read_text(encoding="utf-8"))
         content = str(record["content"]).strip()
         documents.append(Document(
@@ -114,23 +129,82 @@ def _lexical_documents():
     return documents
 
 
-def _lexical_search_with_scores(question, k=None, metadata_filter=None):
-    import re
+def _tokenize(text: str) -> list[str]:
+    return [term for term in re.findall(r"[a-z0-9_:-]+", text.lower()) if len(term) >= 3]
 
+
+def _legacy_lexical_search_with_scores(question, k=None, metadata_filter=None):
     requested_k = k or get_settings().retrieval_k
-    query_terms = {term for term in re.findall(r"[a-z0-9_:-]+", question.lower()) if len(term) >= 3}
+    query_terms = set(_tokenize(question))
     ranked = []
     for document in _lexical_documents():
         if metadata_filter and any(document.metadata.get(key) != value for key, value in metadata_filter.items()):
             continue
         text = f"{document.metadata.get('title', '')} {document.metadata.get('category', '')} {document.page_content}".lower()
-        text_terms = set(re.findall(r"[a-z0-9_:-]+", text))
+        text_terms = set(_tokenize(text))
         overlap = len(query_terms & text_terms)
         score = overlap / max(len(query_terms), 1)
         if overlap:
             ranked.append((document, score))
     ranked.sort(key=lambda pair: (-pair[1], pair[0].metadata.get("document_id", "")))
     return ranked[:requested_k]
+
+
+def _bm25_lexical_search_with_scores(question, k=None, metadata_filter=None):
+    """Deterministic BM25-style ranking with lightweight field weighting."""
+    requested_k = k or get_settings().retrieval_k
+    documents = [
+        document for document in _lexical_documents()
+        if not metadata_filter or not any(document.metadata.get(key) != value for key, value in metadata_filter.items())
+    ]
+    if not documents:
+        return []
+    query_terms = _tokenize(question)
+    if not query_terms:
+        return []
+    tokenized: list[list[str]] = []
+    for document in documents:
+        title = str(document.metadata.get("title", ""))
+        category = str(document.metadata.get("category", ""))
+        # Repeating title and category gives metadata a modest, deterministic boost.
+        tokenized.append(_tokenize(f"{title} {title} {category} {document.page_content}"))
+    document_frequency = Counter(term for terms in tokenized for term in set(terms))
+    average_length = sum(len(terms) for terms in tokenized) / len(tokenized)
+    query_phrase = " ".join(query_terms)
+    scores: list[tuple[Document, float]] = []
+    k1, b = 1.2, 0.75
+    for document, terms in zip(documents, tokenized, strict=True):
+        frequencies = Counter(terms)
+        length = len(terms) or 1
+        score = 0.0
+        for term in query_terms:
+            frequency = frequencies.get(term, 0)
+            if not frequency:
+                continue
+            idf = math.log(1 + (len(documents) - document_frequency[term] + 0.5) / (document_frequency[term] + 0.5))
+            score += idf * ((frequency * (k1 + 1)) / (frequency + k1 * (1 - b + b * length / max(average_length, 1))))
+        if query_phrase and query_phrase in document.page_content.lower():
+            score += 0.75
+        if score > 0:
+            scores.append((document, score))
+    scores.sort(key=lambda pair: (-pair[1], pair[0].metadata.get("document_id", "")))
+    return scores[:requested_k]
+
+
+def _lexical_search_with_scores(question, k=None, metadata_filter=None):
+    configuration = get_settings()
+    if configuration.retrieval_profile == "legacy":
+        return _legacy_lexical_search_with_scores(question, k=k, metadata_filter=metadata_filter)
+    return _bm25_lexical_search_with_scores(question, k=k, metadata_filter=metadata_filter)
+
+
+def retrieval_is_sufficient(ranked_results: list[tuple[Document, float]], *, minimum_score: float | None = None) -> bool:
+    """Return whether lexical evidence clears a calibrated, label-free score gate."""
+    if not ranked_results:
+        return False
+    threshold = minimum_score if minimum_score is not None else get_settings().retrieval_abstention_threshold
+    top_score = ranked_results[0][1]
+    return top_score >= threshold
 
 
 def _lexical_search(question, k=None, metadata_filter=None):

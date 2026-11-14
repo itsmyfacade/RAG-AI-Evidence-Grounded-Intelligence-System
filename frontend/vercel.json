@@ -1,0 +1,11 @@
+{
+  "rewrites": [
+    {"source": "/health", "destination": "https://aegis-ai-y41k.onrender.com/health"},
+    {"source": "/ready", "destination": "https://aegis-ai-y41k.onrender.com/ready"},
+    {"source": "/samples", "destination": "https://aegis-ai-y41k.onrender.com/samples"},
+    {"source": "/investigate", "destination": "https://aegis-ai-y41k.onrender.com/investigate"}
+  ],
+  "headers": [
+    {"source": "/(.*)", "headers": [{"key": "X-Content-Type-Options", "value": "nosniff"}, {"key": "Referrer-Policy", "value": "strict-origin-when-cross-origin"}, {"key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()"}]}
+  ]
+}

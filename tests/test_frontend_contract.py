@@ -5,7 +5,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_frontend_exposes_the_investigation_console_structure() -> None:
     markup = (ROOT / "frontend" / "index.html").read_text(encoding="utf-8")
-    for required_id in ("filter", "sample-count", "scenario", "question", "question-note", "run", "action-readiness", "action-message", "readiness", "empty-state", "empty-title", "empty-description", "execution-indicator", "execution-label", "execution-detail", "execution-action", "report", "findings", "operations", "uncertainty", "trace", "evidence", "view-investigate", "view-scenarios", "view-execution", "catalog-filter", "scenario-catalog", "execution-view-trace", "workspace-subtitle"):
+    for required_id in ("filter", "sample-count", "scenario", "question", "question-note", "run", "action-readiness", "action-message", "readiness", "empty-state", "empty-title", "empty-description", "execution-indicator", "execution-label", "execution-detail", "execution-action", "report", "findings", "operations", "uncertainty", "trace", "evidence", "view-investigate", "view-scenarios", "view-execution", "view-validation", "benchmark-provenance", "benchmark-scope", "benchmark-interpretation", "benchmark-abstention", "benchmark-overview", "benchmark-comparison", "benchmark-categories", "catalog-filter", "scenario-catalog", "execution-view-trace", "workspace-subtitle"):
         assert f'id="{required_id}"' in markup
     for required_class in ("app-frame", "nav-rail", "command-area", "analysis-layout", "operational-panel", "decision-panel", "detail-region"):
         assert required_class in markup
@@ -14,7 +14,7 @@ def test_frontend_exposes_the_investigation_console_structure() -> None:
     assert "mark-shield" not in markup
     assert "Investigation in progress" not in markup
     assert "Workflow timeline" in markup
-    assert markup.count('class="workspace-view"') + markup.count('class="workspace-view ') == 3
+    assert markup.count('class="workspace-view"') + markup.count('class="workspace-view ') == 4
     assert 'data-nav="investigate"' in markup
     assert 'data-nav="scenarios"' in markup
     assert 'data-nav="execution"' in markup
