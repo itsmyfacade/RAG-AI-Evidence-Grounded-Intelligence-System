@@ -24,7 +24,7 @@ request ID; only curated narrative evidence belongs in the vector index.
 .\.venv\Scripts\python.exe -m src.retrieval_eval
 ```
 
-This proves Chroma indexing and the evaluation harness. If the local embedding
+This proves local semantic indexing and the evaluation harness. If the local embedding
 model is unavailable, record that blocker rather than inventing metrics.
 
 Interview question: What does Recall@k measure? Model answer: the fraction of

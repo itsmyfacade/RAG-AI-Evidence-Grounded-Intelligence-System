@@ -11,6 +11,7 @@ const state = {
   trace: [],
   error: null,
   activeDetail: "evidence",
+  benchmark: null,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -18,6 +19,12 @@ const $ = (id) => document.getElementById(id);
 function setText(id, value) {
   const node = $(id);
   if (node) node.textContent = value ?? "";
+}
+
+function scenarioCountText(filteredCount, totalCount) {
+  return filteredCount === totalCount
+    ? `${totalCount} interactive investigation scenarios`
+    : `${filteredCount} of ${totalCount} interactive investigation scenarios`;
 }
 
 function show(id, visible) {
@@ -342,6 +349,9 @@ function renderReport(data) {
   const report = data.report || {};
   state.report = report;
   state.error = null;
+  show("recorded-fallback", false);
+  setText("execution-mode", data.recorded_mode ? "Mode: recorded local output" : "Mode: live API");
+  $("execution-mode")?.classList.toggle("is-recorded", Boolean(data.recorded_mode));
   setText("assessment-title", report.status === "completed" ? "Evidence-backed assessment" : "Investigation requires review");
   setText("summary", report.summary || data.answer || "No summary was returned.");
   setText("investigation-context", `${$("scenario").value || "Investigation"} · ${report.question || data.question || ""}`);
@@ -360,6 +370,33 @@ function renderReport(data) {
   renderTrace(report.agent_trace || data.agent_trace, report.attempts);
   setLifecycle("completed");
   setDetail(state.activeDetail);
+}
+
+function renderBenchmark(data) {
+  state.benchmark = data;
+  const overview = $("benchmark-overview");
+  const comparison = $("benchmark-comparison");
+  const categories = $("benchmark-categories");
+  const limitations = $("benchmark-limitations");
+  const abstention = $("benchmark-abstention");
+  if (!overview || !comparison || !categories || !limitations || !abstention) return;
+  overview.replaceChildren(); comparison.replaceChildren(); categories.replaceChildren(); limitations.replaceChildren(); abstention.replaceChildren();
+  const cards = [["Recall@5", `${(data.optimized.recall_at_5 * 100).toFixed(1)}%`], ["MRR", data.optimized.mrr.toFixed(4)], ["nDCG@5", `${(data.optimized.ndcg_at_5 * 100).toFixed(1)}%`], ["Evidence coverage", `${(data.optimized.evidence_coverage * 100).toFixed(1)}%`]];
+  for (const [label, value] of cards) { const card = document.createElement("div"); card.className = "benchmark-stat"; const span = document.createElement("span"); span.textContent = label; const strong = document.createElement("strong"); strong.textContent = value; card.append(span, strong); overview.append(card); }
+  setText("benchmark-scope", `${data.evaluation_cases.toLocaleString()} cases · ${data.corpus_documents} evidence documents · ${data.splits.development}/${data.splits.validation}/${data.splits.held_out} dev / validation / held-out`);
+  setText("benchmark-interpretation", "The optimized profile improves ranking quality while preserving a lightweight local retrieval path.");
+  const metrics = [["Recall@5", "recall_at_5"], ["MRR", "mrr"], ["nDCG@5", "ndcg_at_5"], ["Evidence coverage", "evidence_coverage"]];
+  for (const [label, key] of metrics) {
+    const row = document.createElement("div"); row.className = "comparison-row"; const title = document.createElement("span"); title.textContent = label; const bars = document.createElement("div"); bars.className = "comparison-track";
+    for (const [name, tone] of [["Baseline", "baseline"], ["Optimized", "optimized"]]) { const value = data[tone][key]; const line = document.createElement("div"); line.className = `comparison-line ${tone}`; const fill = document.createElement("span"); fill.style.width = `${Math.max(0, Math.min(100, value * 100))}%`; const text = document.createElement("b"); text.textContent = `${name} ${(value * 100).toFixed(1)}%`; line.append(fill, text); bars.append(line); }
+    row.append(title, bars); comparison.append(row);
+  }
+  for (const [category, values] of Object.entries(data.categories)) { const row = document.createElement("div"); row.className = "category-row"; const label = document.createElement("span"); label.textContent = category.replaceAll("_", " "); const value = values.recall_at_5 ?? values.correct_abstention ?? 0; const track = document.createElement("div"); track.className = "category-track"; const fill = document.createElement("span"); fill.style.width = `${value * 100}%`; track.append(fill); const number = document.createElement("b"); number.textContent = `${(value * 100).toFixed(1)}%`; row.append(label, track, number); categories.append(row); }
+  const abstentionValue = document.createElement("strong"); abstentionValue.textContent = `${(data.optimized.correct_abstention * 100).toFixed(1)}% correct retrieval-level abstention`;
+  const abstentionCopy = document.createElement("p"); abstentionCopy.textContent = "On insufficient-evidence cases, the system still abstains inconsistently. This is a measured limitation, not a final-answer accuracy claim.";
+  abstention.append(abstentionValue, abstentionCopy);
+  for (const text of data.limitations || []) { const item = document.createElement("li"); item.className = "limitation-item"; const marker = document.createElement("span"); marker.setAttribute("aria-hidden", "true"); marker.textContent = "·"; const copy = document.createElement("p"); copy.textContent = text; item.append(marker, copy); limitations.append(item); }
+  const provenance = $("benchmark-provenance"); provenance.textContent = `Artifact ${data.source_artifact} · dataset ${data.dataset_version} · checksum ${data.dataset_checksum.slice(0, 12)}… · ${data.execution_mode}`;
 }
 
 function populateSelect(samples) {
@@ -389,7 +426,7 @@ function renderScenarioCatalog(samples) {
   const target = $("scenario-catalog");
   if (!target) return;
   target.replaceChildren();
-  setText("catalog-count", `${samples.length} of ${state.samples.length} scenarios`);
+  setText("catalog-count", scenarioCountText(samples.length, state.samples.length));
   if (!samples.length) {
     const empty = document.createElement("p");
     empty.className = "view-empty-copy";
@@ -425,12 +462,12 @@ function filterSamples() {
   const needle = $("filter").value.trim().toLowerCase();
   state.filtered = state.samples.filter((sample) => [sample.scenario_id, sample.title, sample.domain].join(" ").toLowerCase().includes(needle));
   populateSelect(state.filtered);
-  setText("sample-count", `${state.filtered.length} of ${state.samples.length} scenarios`);
+  setText("sample-count", scenarioCountText(state.filtered.length, state.samples.length));
   renderScenarioCatalog(state.filtered);
 }
 
 function navigate(name) {
-  if (!["investigate", "scenarios", "execution"].includes(name)) return;
+  if (!["investigate", "scenarios", "execution", "validation"].includes(name)) return;
   state.activeView = name;
   document.querySelectorAll(".nav-item").forEach((item) => {
     const active = item.dataset.nav === name;
@@ -443,18 +480,34 @@ function navigate(name) {
     view.hidden = !active;
     view.classList.toggle("is-active", active);
   });
-  const titles = { investigate: "Incident investigation", scenarios: "Scenario explorer", execution: "Execution" };
+  const titles = { investigate: "Incident investigation", scenarios: "Scenario explorer", execution: "Execution", validation: "Validation dashboard" };
   const subtitles = {
     investigate: "Correlate technical documentation with operational records to establish what the available evidence supports.",
     scenarios: "Review synthetic incident contexts and open one for evidence-grounded investigation.",
     execution: "Inspect the returned bounded workflow trace and evidence-validation metadata for this session.",
+    validation: "Review verified benchmark artifacts, retrieval trade-offs, and evidence limitations.",
   };
   setText("workspace-title", titles[name]);
   setText("workspace-subtitle", subtitles[name]);
-  const target = name === "scenarios" ? $("catalog-filter") : name === "execution" ? $("execution-title") : $("composer-title");
+  const target = name === "scenarios" ? $("catalog-filter") : name === "execution" ? $("execution-title") : name === "validation" ? $("benchmark-provenance") : $("composer-title");
   if (target) target.focus({ preventScroll: true });
   if (name === "scenarios") renderScenarioCatalog(state.filtered);
   if (name === "execution") setLifecycle(state.lifecycle);
+  if (name === "validation" && !state.benchmark) loadBenchmark();
+}
+
+async function loadBenchmark() {
+  try { const response = await fetchWithTimeout("benchmark.json", {}, 8000); const data = await readResponse(response); if (!response.ok) throw new Error("Benchmark artifact unavailable"); renderBenchmark(data); } catch (error) { setText("benchmark-provenance", `Benchmark artifact unavailable: ${friendlyError(error)}`); }
+}
+
+async function loadRecordedFallback() {
+  try {
+    const response = await fetchWithTimeout("recorded-demo.json", {}, 8000);
+    const data = await readResponse(response);
+    if (!response.ok) throw new Error("Recorded example unavailable");
+    renderReport({ ...data, report: { ...data.report, status: data.status, summary: data.summary, findings: data.findings, evidence_gaps: data.evidence_gaps, contradictions: data.contradictions, recommended_checks: data.recommended_checks, retrieval_mode: data.retrieval_mode, provider: data.provider, model: data.model, question: data.question, investigation_id: `RECORDED-${data.scenario_id}` }, agent_trace: data.agent_trace, mode: data.provider });
+    setText("empty-title", "Recorded local example"); setText("empty-description", "This is a real deterministic local output captured for cold-start fallback. It is not a live API response."); show("empty-state", false); navigate("investigate");
+  } catch (error) { setText("empty-description", friendlyError(error)); }
 }
 
 async function loadReadiness() {
@@ -478,7 +531,7 @@ async function loadSamples() {
   state.samples = Array.isArray(data) ? data : [];
   state.filtered = state.samples;
   populateSelect(state.samples);
-  setText("sample-count", `${state.samples.length} scenarios available`);
+  setText("sample-count", scenarioCountText(state.samples.length, state.samples.length));
   renderScenarioCatalog(state.filtered);
   renderEmptyState();
 }
@@ -510,6 +563,7 @@ async function investigate() {
     setLifecycle("failed");
     setText("empty-title", friendlyError(error));
     setText("empty-description", "No report was displayed. The service returned no validated result; retry when it is ready.");
+    show("recorded-fallback", true);
   } finally {
     state.loading = false;
     button.disabled = false;
@@ -553,6 +607,7 @@ $("filter").addEventListener("input", filterSamples);
 $("catalog-filter").addEventListener("input", filterCatalog);
 $("scenario").addEventListener("change", () => { selectScenario($("scenario").value); });
 $("run").addEventListener("click", investigate);
+$("recorded-fallback").addEventListener("click", loadRecordedFallback);
 document.querySelectorAll("[data-nav]").forEach((button) => button.addEventListener("click", () => navigate(button.dataset.nav)));
 $("scenario-catalog").addEventListener("click", (event) => {
   const button = event.target.closest("[data-scenario]");
@@ -562,6 +617,7 @@ $("scenario-catalog").addEventListener("click", (event) => {
 });
 document.querySelectorAll("[data-detail]").forEach((button) => button.addEventListener("click", () => setDetail(button.dataset.detail)));
 loadReadiness();
+loadBenchmark();
 loadSamples().catch((error) => {
   setLifecycle("failed");
   setText("sample-count", "Scenarios unavailable");

@@ -25,7 +25,11 @@ jobs:
           pip install -r requirements.txt
 
       - name: Compile Python files
-        run: python -m compileall -q src tests generate_data.py aws_diagnostic.py
+        run: python -m compileall -q src tests tools generate_data.py aws_diagnostic.py
+
+      - name: Validate release artifacts
+        run: >-
+          python -c "import json; from pathlib import Path; [json.loads(Path(p).read_text(encoding='utf-8')) for p in ('frontend/benchmark.json', 'frontend/recorded-demo.json', 'frontend/vercel.json')]; print('release JSON valid')"
 
       - name: Run automated tests and API contracts
         env:
@@ -45,10 +49,12 @@ jobs:
         run: python -m pip check
 
       - name: Audit Python dependencies
-        run: python -m pip install pip-audit && pip-audit -r requirements.txt --disable-pip --no-deps --progress-spinner off
+        run: |
+          python -m pip install pip-audit
+          pip-audit --progress-spinner off
 
       - name: Frontend JavaScript syntax check
-        run: node --check frontend/app.js
+        run: node --check frontend/app.js && node --check frontend/review.js
 
   browser-e2e:
     permissions:
@@ -100,7 +106,7 @@ jobs:
           if-no-files-found: ignore
 
   standard-profile-security-report:
-    name: Standard profile security report (informational)
+    name: Standard profile security gate
     permissions:
       contents: read
     runs-on: ubuntu-24.04
@@ -130,25 +136,15 @@ jobs:
       - name: Run Pyright type safety gate
         run: npx --yes pyright@1.1.413 --pythonpath "$(command -v python)" --project pyrightconfig.json
 
+      - name: Check resolved dependency consistency
+        run: python -m pip check
+
       - name: Audit standard-profile dependencies
-        id: standard-audit
-        if: always()
         shell: bash
         run: |
-          set +e
+          set -o pipefail
           python -m pip install pip-audit
-          pip-audit -r requirements-standard.txt --disable-pip --no-deps --progress-spinner off | tee standard-profile-pip-audit.txt
-          audit_status=${PIPESTATUS[0]}
-          {
-            echo "### Standard-profile dependency audit"
-            echo ""
-            echo "This report is informational because the optional standard profile currently contains unresolved ChromaDB advisories."
-            echo "pip-audit exit code: ${audit_status}"
-          } >> "$GITHUB_STEP_SUMMARY"
-          if [ "$audit_status" -ne 0 ]; then
-            echo "::warning title=Standard profile advisories::Unresolved standard-profile dependency findings remain; see the uploaded audit report."
-          fi
-          exit 0
+          pip-audit --progress-spinner off | tee standard-profile-pip-audit.txt
 
       - name: Upload standard-profile security report
         if: always()

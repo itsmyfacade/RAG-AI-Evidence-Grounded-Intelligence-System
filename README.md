@@ -1,89 +1,119 @@
-# AEGIS - AI Evidence-Grounded Intelligence System
+# AEGIS: Evidence-Grounded AI Investigation System
 
 [![CI](https://github.com/itsmyfacade/RAG-AI-Evidence-Grounded-Intelligence-System/actions/workflows/ci.yml/badge.svg)](https://github.com/itsmyfacade/RAG-AI-Evidence-Grounded-Intelligence-System/actions/workflows/ci.yml)
 
-AEGIS is an incident-investigation application for tracing technical failures across documentation and structured operational evidence. I built it to demonstrate a practical RAG system that makes citations, uncertainty, and missing evidence visible instead of presenting an unsupported model answer as a root-cause certification.
+AEGIS is an evidence-grounded technical investigation workbench. It correlates synthetic incident documentation with structured operational records, runs a bounded sequential LangGraph workflow, and returns findings with citations, evidence gaps, contradictions, uncertainty, and an inspectable execution trace. Evidence grounding makes the reasoning traceable to available sources; it does not guarantee factual correctness or certify a production root cause.
 
 ## Live demo
 
-[Open the AEGIS demo](https://aegis-ai-y41k.onrender.com/demo/)
+[Open the existing AEGIS Render demo](https://aegis-ai-y41k.onrender.com/demo/)
 
-The public demo uses `AEGIS_DEPLOYMENT_PROFILE=lite` and `AEGIS_LLM=local`. It is deterministic and uses lightweight lexical retrieval so it can run within Render Free's 512 MB memory limit. The live demo is not using Bedrock inference.
+The existing public URL remains the backward-compatible showcase. Its hosted profile uses deterministic local synthesis and the lightweight retrieval path. Render Free may suspend the service between requests, so the first request can experience a cold start. No Vercel deployment is claimed or created by this repository.
+
+The workbench exposes **20 interactive investigation scenarios** from `GET /samples`. These are executable demonstration contexts, not benchmark questions. The separate Validation workspace reads a **1,200-case synthetic retrieval benchmark** over **90 evidence documents**. A separate **40-case ground-truth review packet** is available for independent review and remains pending; it is not part of serving data.
+
+## Why AEGIS
+
+Many AI investigation interfaces make a plausible answer look like a confirmed root cause. AEGIS is designed to show the boundary between what a source says, what operational records demonstrate, what remains a hypothesis, and what evidence is missing.
+
+## Interactive scenarios versus benchmark cases
+
+| Surface | Dataset | Purpose |
+| --- | --- | --- |
+| Investigation workbench | 20 interactive scenarios from `/samples` | Run a bounded investigation and inspect findings, evidence, uncertainty, and the actual workflow trace. |
+| Validation workspace | 1,200 synthetic retrieval cases | Compare retrieval profiles using fixed labels and versioned benchmark artifacts. |
+| Human-review workspace | 40 review-packet cases | Let a reviewer inspect labels and export separate decisions. Independent review is pending. |
+
+The three surfaces answer different questions. Interactive scenarios exercise the application flow. Benchmark cases measure retrieval behavior. Review-packet cases support label inspection. They must not be presented as interchangeable counts.
+
+## Implemented capabilities
+
+- FastAPI request validation, safe public errors, bounded concurrency, and in-process demo quotas.
+- Sequential LangGraph workflow: supervisor, document research, operations analysis, investigation synthesis, and evidence validation.
+- Lite retrieval using cached deterministic BM25-style lexical ranking.
+- Legacy lexical profile retained for historical comparisons.
+- Optional local Sentence Transformer retrieval profile with a small file-backed semantic vector index.
+- Read-only parameterized SQLite operational evidence tools.
+- Citation identity validation and conservative lexical claim-support checks.
+- Explicit evidence gaps, contradictions, hypotheses, findings, provider identity, and retrieval mode.
+- Human-review packet workflow with separate JSON decision export.
+- Benchmark dashboard with artifact provenance and baseline versus optimized metrics.
+- Clearly labeled deterministic recorded fallback for backend cold starts.
+- Static frontend deployment preparation through Vercel rewrites to the unchanged Render API.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    U[FastAPI request] --> S[Supervisor: scenario selection]
-    S --> D[Document research node]
-    D -.-> R[Chroma or lite lexical retrieval]
-    D --> O[Operations analysis node]
-    O -.-> Q[Read-only parameterized SQLite tools]
-    O --> I[Investigation synthesis]
-    I --> V[Evidence registry and claim verification]
-    V --> F[Typed report and sanitized trace]
-    F --> API[FastAPI response and demo UI]
+    B[Browser workbench] --> F[Static frontend]
+    F -->|same-origin rewrite when configured| A[FastAPI]
+    A --> G[Sequential LangGraph]
+    G --> S[Supervisor]
+    S --> D[Document research]
+    D --> L[Lite BM25 retrieval]
+    D --> C[Optional local semantic vector index]
+    G --> O[Operations analysis]
+    O --> Q[Parameterized SQLite]
+    G --> Y[Local or explicitly selected provider]
+    Y --> V[Evidence registry and claim validation]
+    L --> V
+    C --> V
+    Q --> V
+    V --> R[Typed report and trace]
+    R --> B
+    E[Benchmark generator and evaluator] -. separate path .-> L
 ```
 
-An investigation request passes through one bounded, sequential, single-pass LangGraph workflow (solid arrows are graph steps in execution order; dotted arrows are the data sources a step queries): a supervisor identifies the scenario, document research retrieves technical passages, operations analysis queries SQLite, synthesis uses the configured provider, and verification validates evidence identity and claim support. The graph ends after verification; there is no retry loop. The research and verification stages are deterministic workflow nodes; only the configured synthesis provider performs model inference. The system distinguishes observations, hypotheses, documented causes, and operational confirmation.
+The serving graph never loads evaluator labels. Benchmark generation and review tooling are local evaluation paths, separate from the application workflow.
 
-## Technology and data
+More detail is in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
-- Python, Pydantic, FastAPI, and Uvicorn
-- LangChain document, embedding, and provider abstractions
-- LangGraph supervisor, bounded single-pass sequential routing, and shared state
-- Chroma with Sentence Transformers for full local semantic retrieval
-- SQLite for logs, deployments, configuration, tickets, and webhook events
-- AWS Bedrock Runtime through Boto3 and LangChain `ChatBedrockConverse`
-- Gemini provider adapter for explicit operator-selected inference
-- Docker and GitHub Actions
+## Investigation workflow
 
-The deterministic generator creates 20 linked synthetic scenarios with partners, incidents, support tickets, deployments, configuration changes, API logs, webhook events, and technical documents. The baseline database contains 240 API log records, 80 webhook events, 20 records in the main scenario tables, and 30 cataloged narrative documents. Operational logs remain structured in SQLite rather than being indiscriminately embedded. Serving SQLite contains operational facts only; evaluator answers live separately in `data/evaluation/scenario_labels.json`, are never loaded by the API or graph, and are excluded from the Docker image. Public scenario titles and questions describe observable symptoms only; regression tests check that they do not name a documented cause or an expected evaluation condition, and that rewriting the labels changes no runtime status.
+1. Select a synthetic scenario or write a symptom-oriented question.
+2. Submit the bounded investigation request.
+3. Review the status, provider, retrieval mode, and findings.
+4. Inspect evidence records, source IDs, excerpts, supporting references, gaps, and contradictions.
+5. Open the workflow timeline to inspect the actual sequential execution trace.
+6. Treat documented causes and hypotheses as evidence-qualified statements, not production certification.
 
-## Retrieval modes
+The interface distinguishes live API output, benchmark artifacts, and recorded deterministic local output.
 
-### Standard local vector RAG
+## Evaluation results
 
-The standard profile is configured to use `all-MiniLM-L6-v2` Sentence Transformer embeddings (a 384-dimensional model) and a persisted Chroma collection named `aegis_incidents` in `.chroma_local`. Chunks use a 500-character target and 80-character overlap in `src/ingest.py`. The small deterministic corpus is rebuilt safely so changed and deleted chunks are reconciled. The Chroma directory is an ignored runtime artifact: it is created only when standard vector indexing runs, not by importing the application or running hosted-lite, so it may be absent on a fresh checkout. Standard semantic retrieval remains optional and security-blocked by the unresolved ChromaDB advisories described below.
+The Phase 3 comparison uses the same 1,200-case synthetic workload and 90-document synthetic corpus for both profiles.
 
-The standard-vector path is implemented and separately tested with fake embeddings,
-but a current end-to-end Sentence Transformers benchmark is not claimed here because
-model initialization remains environment-dependent under Python 3.14. The evaluation
-script computes Recall@4, Hit@4, MRR, and evidence coverage from
-`data/evaluation/retrieval_cases.json`.
+| Metric | Legacy lexical | BM25 plus abstention | Change |
+| --- | ---: | ---: | ---: |
+| Recall@5 | 0.6315 | 0.8375 | +32.6% relative |
+| MRR | 0.5104 | 0.8559 | +67.7% relative |
+| nDCG@5 | 0.5285 | 0.8462 | +60.2% relative |
+| Evidence coverage | 0.7144 | 0.8426 | +17.9% relative |
+| Correct retrieval-level abstention | 0.0000 | 0.2333 | +23.3 percentage points |
+| False-answer proxy | 1.0000 | 0.7667 | -23.3% relative |
 
-```powershell
-$env:AEGIS_DEPLOYMENT_PROFILE="lite"
-python -m src.retrieval_eval --k 4
+Relative change is `(optimized - legacy) / legacy`. Abstention is reported in percentage points because its legacy baseline is zero, so a relative percentage would be undefined.
 
-$env:AEGIS_DEPLOYMENT_PROFILE="standard"
-$env:AEGIS_EMBEDDINGS="local"
-$env:AEGIS_EMBEDDING_LOCAL_FILES_ONLY="true"
-python -m src.rag
-python -m src.retrieval_eval --k 4
-```
+The optimized local retrieval p95 was 2.585 ms. The legacy profile measured 1.422 ms p95 under the same local harness. The optimized profile trades a small latency increase for stronger ranking quality.
 
-### Hosted lite mode
+These are synthetic retrieval measurements, not production accuracy, diagnosis accuracy, semantic entailment, or hallucination-prevention claims. The benchmark has evidence-family reuse across splits, ambiguous-case abstention remains weak, and the 40-case review packet has not received independent human decisions. Citation identity checks do not prove semantic entailment, and retrieval-level false-answer proxies do not measure final-answer hallucination. Confidence intervals, checksums, methodology, and exact commands are documented in [`docs/PHASE3_RELEASE_EVIDENCE.md`](docs/PHASE3_RELEASE_EVIDENCE.md).
 
-The lite profile loads the small JSON document corpus directly, ranks lexical overlap, and preserves canonical metadata and evidence validation. It does not import Torch, Sentence Transformers, Chroma, or `langchain_chroma`. It reports `retrieval_mode=lexical`; it is not presented as embedding-quality retrieval.
+## Evaluation integrity
 
-The following five-case regression results are hosted-lite lexical results, not
-standard Chroma/Sentence Transformers results:
+- Dataset version: `aegis-phase2-v1`.
+- Generator version: `template-ontology-v1`.
+- Splits: development 700, validation 200, held-out 300.
+- Correct abstention is a retrieval-level proxy, not final answer correctness.
+- Citation identity is separate from semantic claim support.
+- The current 40-case human-review packet remains pending independent review.
+- Evidence families are reused across splits, so full family-disjoint independence is not claimed.
+- Mixed-source retrieval and ambiguous-case abstention remain known weaknesses.
 
-| Metric | Hosted-lite lexical |
-| --- | ---: |
-| Recall@4 | 0.5667 |
-| Hit@4 | 0.8000 |
-| MRR | 0.7000 |
-| Evidence coverage | 0.8333 |
-
-These are regression measurements on labeled synthetic retrieval cases, not
-production benchmark results or diagnosis-accuracy measurements. They were produced
-with `AEGIS_DEPLOYMENT_PROFILE=lite` and lexical retrieval.
+The review workflow is available at `/demo/review.html` when running the local static mount. Load `data/evaluation/results/phase3-ground-truth-review-packet.json` through the file picker, record decisions after independent inspection, and export the separate decision JSON.
 
 ## Local setup
 
-Use Python 3.12 for the canonical CI and Docker runtime. The default `requirements.txt` is a secure lite-compatible development and CI set. The Render/Docker lite image uses the smaller `requirements-lite.txt`; standard vector RAG uses the optional `requirements-standard.txt` set and a locally available embedding model.
+Use Python 3.12 for the canonical CI and Docker runtime.
 
 ```powershell
 git clone https://github.com/itsmyfacade/RAG-AI-Evidence-Grounded-Intelligence-System.git
@@ -95,41 +125,63 @@ Copy-Item .env.example .env
 python generate_data.py --mode all
 ```
 
-For a low-memory local run:
+Low-memory deterministic local run:
 
 ```powershell
 $env:AEGIS_DEPLOYMENT_PROFILE="lite"
 $env:AEGIS_LLM="local"
 $env:AEGIS_EMBEDDINGS="local"
+$env:AEGIS_RETRIEVAL_PROFILE="bm25"
+$env:AEGIS_RETRIEVAL_ABSTENTION="true"
+$env:AEGIS_RETRIEVAL_ABSTENTION_THRESHOLD="12"
 python -m uvicorn src.api:app --reload
 ```
 
-For full local vector retrieval:
+Open [http://127.0.0.1:8000/demo/](http://127.0.0.1:8000/demo/).
+
+The existing Render demo uses the same relative API paths. The prepared Vercel configuration is in [`frontend/vercel.json`](frontend/vercel.json), but no Vercel deployment is claimed.
+
+## Repository structure
+
+```text
+src/                 FastAPI routes, workflow, retrieval, evidence, and settings
+data/                Synthetic source data, SQLite evidence, and local evaluation outputs
+frontend/             Static workbench, review workspace, benchmark artifacts, and Vercel config
+tests/                Python contracts, regression checks, and Playwright browser tests
+tools/                Benchmark, profiling, review, and validation utilities
+docs/                 Architecture, deployment, case-study, and evaluation evidence
+```
+
+The benchmark runtime results directory is intentionally ignored. The committed evaluation evidence document contains the reproducibility details needed to regenerate those artifacts locally.
+
+## API
+
+- `GET /health`: process health.
+- `GET /ready`: profile and data readiness.
+- `GET /samples`: allowlisted synthetic scenarios.
+- `POST /investigate`: typed investigation response.
+- `GET /demo/`: static workbench.
+
+Example request:
 
 ```powershell
-$env:AEGIS_DEPLOYMENT_PROFILE="standard"
-$env:AEGIS_LLM="local"
-$env:AEGIS_EMBEDDINGS="local"
-$env:AEGIS_EMBEDDING_MODEL="all-MiniLM-L6-v2"
-$env:AEGIS_EMBEDDING_LOCAL_FILES_ONLY="true"
-python -m pip install -r requirements-standard.txt
-python -m src.rag
-python -m src.retrieval_eval
-python -m uvicorn src.api:app --reload
+$body = @{ scenario_id = "SCN-005"; question = "Investigate webhook processing errors, delayed deliveries, and delivery attempts for a partner integration. Do not assume a root cause." } | ConvertTo-Json
+Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:8000/investigate" -ContentType "application/json" -Body $body
 ```
 
-If the embedding model is not cached, download it once in an environment with Hugging Face access, then rerun with `AEGIS_EMBEDDING_LOCAL_FILES_ONLY=true`.
+## Retrieval profiles
 
-## Canonical data generation
+### Lite
 
-`generate_data.py` is the only public data-generation entry point. It creates or validates
-the deterministic 30-document corpus and linked SQLite dataset without silently replacing
-conflicting files. The four modes are:
+The lite profile reads the small JSON document corpus directly and uses cached BM25-style lexical ranking. It does not import Torch or Sentence Transformers. Set `AEGIS_RETRIEVAL_PROFILE=legacy` to reproduce the historical raw lexical baseline. Set `AEGIS_RETRIEVAL_ABSTENTION=true` to enable the calibrated evidence score gate.
 
-- `documents` — create or validate-compatible narrative documents only.
-- `database` — create the database, or validate an existing one unless replacement is explicit.
-- `all` — safely create both outputs, preserving compatible existing files.
-- `validate` — validate both outputs without changing them.
+### Standard
+
+The optional standard profile uses `all-MiniLM-L6-v2` embeddings with a small local JSON vector index. It preserves document IDs, metadata equality filters, cosine-similarity ranking, and offline persistence without a vector database service. It requires the optional dependency set and locally available model files. It is not the hosted profile.
+
+## Data generation
+
+`generate_data.py` is the canonical generator for the deterministic 30-document narrative corpus and SQLite dataset.
 
 ```powershell
 python generate_data.py --mode documents
@@ -138,94 +190,80 @@ python generate_data.py --mode all
 python generate_data.py --mode validate
 ```
 
-Use `--documents-dir` and `--database-path` for explicit output locations. Repeated
-generation is safe: compatible documents are unchanged and an existing database is
-validated rather than replaced. Existing conflicting documents require
-`--replace-documents`; replacing an existing database requires `--replace-database`.
-With no mode, the command defaults to database generation, retaining the Docker-compatible
-behavior used by the image build.
+Phase 2 and Phase 3 benchmark cases and runtime results are generated locally under `data/evaluation/results/`, which is ignored. The committed evidence summary is [`docs/PHASE3_RELEASE_EVIDENCE.md`](docs/PHASE3_RELEASE_EVIDENCE.md).
 
-## API and demo
-
-- `GET /health` - process health
-- `GET /ready` - data and active-profile readiness
-- `GET /samples` - allowlisted synthetic scenarios
-- `POST /investigate` - structured investigation report
-- `GET /demo/` - frontend investigation interface
-
-Example request (the demo supplies a symptom-oriented question):
+## Testing and reproducibility
 
 ```powershell
-$body = @{ scenario_id = "SCN-005"; question = "Investigate webhook processing errors, delayed deliveries, and delivery attempts for a partner integration. Do not assume a root cause." } | ConvertTo-Json
-Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:8000/investigate" -ContentType "application/json" -Body $body
-```
-
-Reports include status, summary, findings, evidence references and excerpts, hypotheses, evidence gaps, contradictions, provider identity, retrieval mode, token usage where available, and a sanitized agent trace. The API applies bounded concurrency, request quotas, input validation, and safe public errors.
-
-## Providers and AWS boundary
-
-`AEGIS_LLM=local` uses deterministic synthesis for tests and demonstrations; it is not LLM inference. `AEGIS_LLM=bedrock` selects the real Bedrock provider explicitly. The repository configures region `us-east-2` and inference profile `us.amazon.nova-micro-v1:0` through `ChatBedrockConverse`; a successful live Bedrock request is not verified by the offline test suite. Provider identity is preserved and failures do not silently fall back to local output.
-
-The hosted Render demo remains local-only and does not require AWS credentials. S3 synchronization, IAM examples, Bedrock diagnostics, AgentCore packaging guidance, and GovCloud design notes are available in `docs/`. No AWS resources are provisioned by this repository.
-
-## Tests, QA automation, and CI
-
-Normal tests are offline and do not call Bedrock, Gemini, S3, IAM, or Hugging Face. Python 3.12 in GitHub Actions and Docker is the compatibility baseline. Hosted-lite has a blocking dependency audit and runs without Chroma. Standard vector retrieval is tested separately with its optional dependency set; the hosted demo does not install or require that set. The layered QA commands and browser-test boundaries are documented in [`docs/QA_AUTOMATION.md`](docs/QA_AUTOMATION.md).
-
-```powershell
-python -m compileall -q src tests generate_data.py aws_diagnostic.py
-python -m pytest tests -q
-python -m ruff check .
+python -m compileall -q src tests tools generate_data.py aws_diagnostic.py bedrock_smoke.py mantle_smoke.py
+python -m pytest -q
+python -m ruff check src tests tools generate_data.py aws_diagnostic.py bedrock_smoke.py mantle_smoke.py
 node --check frontend/app.js
+node --check frontend/review.js
+git diff --check
 ```
 
-The full scenario evaluator is separate from serving behavior and uses the same symptom-oriented question builder as the demo:
+Historical five-case retrieval baseline:
 
 ```powershell
-$env:AEGIS_LLM="local"
 $env:AEGIS_DEPLOYMENT_PROFILE="lite"
-python -m src.scenario_eval
+$env:AEGIS_RETRIEVAL_PROFILE="legacy"
+$env:AEGIS_RETRIEVAL_ABSTENTION="false"
+python -m src.retrieval_eval --k 4
 ```
 
-The evaluator compares evidence-derived runtime statuses with public synthetic reference labels;
-these labels are not private held-out ground truth. Any match rate is a synthetic consistency
-check, not a diagnosis-accuracy benchmark. Expected labels are never loaded by the serving API
-or graph.
+Phase 3 optimized benchmark:
 
-GitHub Actions runs continuous integration on every push and pull request using the explicitly pinned Ubuntu 24.04 runner. The workflow uses Node 24-compatible official actions, Python 3.12, the secure lite-compatible manifest, offline/local environment variables, compilation, pytest and HTTPX API contracts, Ruff, dependency checks, and frontend syntax validation. A separate Chromium/Playwright job exercises the local hosted-lite server and uploads browser reports, screenshots, and traces when available. A separately named standard-profile job runs vector regression tests and uploads a visible dependency-audit report; its ChromaDB findings are currently unresolved and are not a security certification. Current status is shown by the CI badge above. The repository does not include continuous delivery; the Render demo is deployed separately.
+```powershell
+$env:AEGIS_DEPLOYMENT_PROFILE="lite"
+$env:AEGIS_LLM="local"
+$env:AEGIS_EMBEDDINGS="local"
+$env:AEGIS_EMBEDDING_LOCAL_FILES_ONLY="true"
+$env:AEGIS_RETRIEVAL_PROFILE="bm25"
+$env:AEGIS_RETRIEVAL_ABSTENTION="true"
+$env:AEGIS_RETRIEVAL_ABSTENTION_THRESHOLD="12"
+python tools/run_phase2_benchmark.py
+```
+
+The full browser suite is available through Playwright:
+
+```powershell
+npm ci
+npx playwright install chromium
+npm run test:e2e
+```
+
+GitHub Actions runs lightweight Python quality, API, frontend syntax, browser, and standard-profile security-gate jobs. Heavy benchmark reproduction remains a documented local command rather than a required per-push job.
+
+The latest local release-preflight validation recorded **88 Python tests passed**, **9 Playwright browser tests passed**, Ruff passed, Python compilation passed, JavaScript syntax checks passed, benchmark, recorded-demo, and Vercel JSON validation passed, and `npm audit --audit-level=high` reported **0 vulnerabilities**. These checks establish local regression evidence; they do not guarantee public Render reliability.
+
+## Docker and Render
+
+The Dockerfile builds the lightweight FastAPI backend profile. It does not Dockerize the static frontend. Render remains the existing backend and demo host. The current public URL is preserved:
+
+`https://aegis-ai-y41k.onrender.com/demo/`
+
+Docker and Render boundaries are documented in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md). No new service, paid resource, or deployment is created by this repository.
+
+The intended future frontend project is named `aegis` with `frontend` as its project root. Its public URL has not been verified, so this README does not invent one. Until a deployment is independently tested, the Render URL above remains the only public demo link.
 
 ## Security and limitations
 
-- `.env`, credentials, databases, Chroma indexes, caches, archives, and virtual environments are ignored from source control.
-- SQL tools are read-only and parameterized.
-- S3 synchronization resolves object keys inside the configured directory and rejects traversal or absolute paths.
-- Documents are treated as untrusted evidence, not instructions.
-- Citation identity checks are deterministic; claim-support checks are conservative heuristics, not calibrated entailment or hallucination prevention.
-- The dataset and five-case retrieval evaluation are synthetic and small.
-- A documented cause is not automatically an operationally confirmed root cause.
-- The demo is not authenticated and relies on in-process quotas; production use would require stronger identity, rate limiting, durable storage, monitoring, and secret management.
-- Standard Sentence Transformer and Chroma mode is not suitable for a 512 MB hosted instance.
-- Hosted-lite is the approved lightweight deployment profile and does not install ChromaDB. The optional standard profile remains security-blocked by unresolved ChromaDB advisories `PYSEC-2026-311`, `PYSEC-2026-3813`, `PYSEC-2026-3814`, and `PYSEC-2026-3815` (the audit currently reports `PYSEC-2026-311` twice through aliases). No fixed version was reported by the advisory service at the time of validation.
+- `.env`, credentials, databases, semantic indexes, caches, archives, and virtual environments are ignored.
+- SQL access is read-only and parameterized.
+- Public errors are sanitized.
+- Retrieved documents are treated as untrusted evidence, never executable instructions.
+- Citation identity checks and lexical claim support are conservative heuristics, not semantic entailment.
+- The demo is unauthenticated and uses in-process quotas. A production service would need stronger identity, durable rate limiting, monitoring, and secret management.
+- The synthetic dataset and benchmark do not establish production reliability or diagnosis accuracy.
+- The optional standard dependency profile uses a local semantic vector index and does not install ChromaDB. It remains separate from the hosted-lite profile because Sentence Transformer model files are larger and environment-dependent.
 
-AEGIS is an engineering demonstration, not a production incident-management system or production root-cause certification service.
+## Project documentation
 
-## Project guides
-
-- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) - Docker and Render deployment boundaries
-- [`docs/HANDS_ON.md`](docs/HANDS_ON.md) - interview-oriented verification exercises
-- [`docs/DOMAIN_ONTOLOGY.md`](docs/DOMAIN_ONTOLOGY.md) - lightweight data relationships
-- [`docs/AGENTCORE.md`](docs/AGENTCORE.md) - optional AgentCore compatibility guidance
-- [`docs/GOVCLOUD.md`](docs/GOVCLOUD.md) - GovCloud architecture considerations
-
-## Project structure
-
-```text
-src/                 FastAPI, LangGraph, retrieval, providers, evidence, and SQLite tools
-data/documents/      30 synthetic narrative documents
-data/evaluation/     Public synthetic evaluation fixtures
-frontend/            Lightweight static demonstration UI
-tests/               Offline unit, integration, security, and generator-contract tests
-generate_data.py     Canonical documents/database generation and validation CLI
-Dockerfile           Lite-by-default container entry point
-docs/                Deployment, ontology, hands-on, and cloud-boundary guides
-```
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): runtime and deployment architecture.
+- [`docs/AEGIS_CASE_STUDY.md`](docs/AEGIS_CASE_STUDY.md): engineering challenge, decisions, measurements, and limitations.
+- [`docs/PHASE3_RELEASE_EVIDENCE.md`](docs/PHASE3_RELEASE_EVIDENCE.md): sanitized benchmark evidence and reproduction.
+- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md): Docker and Render boundaries.
+- [`docs/QA_AUTOMATION.md`](docs/QA_AUTOMATION.md): validation layers and browser-test boundaries.
+- [`docs/HANDS_ON.md`](docs/HANDS_ON.md): interview-oriented verification exercises.
+- [`docs/DOMAIN_ONTOLOGY.md`](docs/DOMAIN_ONTOLOGY.md): synthetic data relationships.

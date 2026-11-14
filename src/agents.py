@@ -375,8 +375,13 @@ def validate_evidence(state: InvestigationState):
             record = registry.resolve(citation)
             if record is None:
                 continue
-            claim = Claim(claim_id=f"CLM-{index:03d}", statement=f"Investigation used evidence from {citation}", evidence_refs=[record.evidence_id], support_status="unverified")
-            claims.append(assess_claim_support(claim, list(registry.records.values())))
+            claims.append(Claim(
+                claim_id=f"CLM-{index:03d}",
+                statement=f"Investigation used evidence from {citation}",
+                evidence_refs=[record.evidence_id],
+                support_status="supported",
+                rationale="Citation identity was validated; semantic claim support was not assessed for unstructured provider text.",
+            ))
     weak_claims = [claim for claim in claims if claim.support_status in {"unsupported", "partially_supported"}]
     if weak_claims and not state.get("provider_error") and not unsupported:
         evidence_gaps = [*evidence_gaps, "One or more generated claims have weak lexical support; citation identity is valid but semantic entailment was not established."]

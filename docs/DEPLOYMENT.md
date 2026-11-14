@@ -19,7 +19,7 @@ Open `http://localhost:8000/` and confirm `/ready` reports `ready: true`.
 
 Use the Docker runtime. The default Docker build installs `requirements-lite.txt`
 and sets the profile to `lite`; it does not install Sentence Transformers,
-PyTorch, Chroma, Boto3, or provider SDKs that are not needed by the public local
+PyTorch, semantic-index, Boto3, or provider SDKs that are not needed by the public local
 demo. Set these environment variables in Render:
 
 ```text
@@ -41,11 +41,14 @@ Render's `PORT`, and starts one Uvicorn worker. Do not set `GEMINI_API_KEY` for
 the deterministic public profile.
 
 The hosted retrieval mode is explicitly reported as `lexical`. It loads the
-small narrative corpus from JSON, ranks token overlap, and applies metadata
-filters without importing ML models or Chroma. This is a real lightweight
-retrieval implementation, not a claim of embedding-quality retrieval. Full
-Sentence Transformer + Chroma RAG remains available through the standard local
-profile and the full `requirements.txt` installation.
+small narrative corpus from JSON, uses cached deterministic BM25-style lexical
+ranking, and applies metadata filters without importing ML models or the standard
+semantic index.
+The historical raw overlap ranker remains available through
+`AEGIS_RETRIEVAL_PROFILE=legacy`. This is a real lightweight retrieval
+implementation, not a claim of embedding-quality retrieval. Full
+Sentence Transformer semantic retrieval remains available through the standard
+local profile and the `requirements-standard.txt` installation.
 
 ## Required host settings
 
@@ -83,8 +86,35 @@ remain `AEGIS_LLM=local`; it does not install the Bedrock SDK in its lite image.
 ## Memory and cold starts
 
 The lite image avoids the known memory-heavy request path: Sentence Transformer
-model loading, PyTorch initialization, and Chroma client/telemetry initialization.
+model loading, PyTorch initialization, and semantic-index initialization.
 The 512 MB Render target has not been measured on Render from this repository;
 local process memory and provider cold-start behavior are environment-specific.
 If standard local RAG is enabled on a 512 MB instance, memory exhaustion remains
 expected and is outside the supported hosted profile.
+
+## Optional standard-profile security status
+
+The optional standard profile uses a small local JSON vector index with
+Sentence Transformer embeddings. It does not install ChromaDB or expose a vector
+database server. The standard profile remains optional because model files are
+larger and environment-dependent, while the hosted-lite profile remains the
+supported public deployment path.
+
+## Vercel frontend preparation
+
+`frontend/vercel.json` prepares the static frontend for a Vercel project whose
+root directory is `frontend`. It rewrites `/health`, `/ready`, `/samples`, and
+`/investigate` to the unchanged Render backend while keeping browser requests
+same-origin. The file contains no credentials. No Vercel deployment has been
+created or verified from this repository.
+
+The existing Render URL remains the rollback target:
+
+`https://aegis-ai-y41k.onrender.com/demo/`
+
+Before activation, confirm Vercel Hobby eligibility for the intended personal,
+recruiter, or hackathon use case, verify the account billing state, deploy the
+frontend independently, test the rewrites and recorded fallback, and retain the
+Render URL until the new frontend passes acceptance. Rollback is a Vercel
+project-level removal or domain detachment while leaving the Render service
+unchanged.

@@ -29,6 +29,9 @@ class Settings(BaseModel):
     bedrock_embedding_model_id: str = "amazon.titan-embed-text-v2:0"
     retrieval_k: int = Field(default=4, ge=1, le=20)
     retrieval_score_threshold: float = Field(default=0.0, ge=0.0, le=1.0)
+    retrieval_profile: str = "bm25"
+    retrieval_abstention: bool = False
+    retrieval_abstention_threshold: float = Field(default=12.0, ge=0.0, le=100.0)
     provider_timeout_seconds: int = Field(default=30, ge=1, le=300)
     max_output_tokens: int = Field(default=500, ge=32, le=4096)
     bedrock_max_tokens: int = Field(default=1200, ge=32, le=4096)
@@ -87,6 +90,9 @@ class Settings(BaseModel):
             bedrock_embedding_model_id=os.getenv("AEGIS_BEDROCK_EMBEDDING_MODEL_ID", "amazon.titan-embed-text-v2:0"),
             retrieval_k=int(os.getenv("AEGIS_RETRIEVAL_K", "4")),
             retrieval_score_threshold=float(os.getenv("AEGIS_RETRIEVAL_SCORE_THRESHOLD", "0")),
+            retrieval_profile=os.getenv("AEGIS_RETRIEVAL_PROFILE", "bm25").lower(),
+            retrieval_abstention=boolean("AEGIS_RETRIEVAL_ABSTENTION", False),
+            retrieval_abstention_threshold=float(os.getenv("AEGIS_RETRIEVAL_ABSTENTION_THRESHOLD", "12.0")),
             provider_timeout_seconds=int(os.getenv("AEGIS_PROVIDER_TIMEOUT_SECONDS", "30")),
             max_output_tokens=int(os.getenv("AEGIS_MAX_OUTPUT_TOKENS", "500")),
             bedrock_max_tokens=int(os.getenv("AEGIS_BEDROCK_MAX_TOKENS", "1200")),

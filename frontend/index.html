@@ -14,6 +14,7 @@
         <span class="wordmark" aria-label="AEGIS Incident Intelligence Protocol"><strong class="wordmark-main">AEGIS</strong><span class="wordmark-rule" aria-hidden="true"></span><small>Incident Intelligence Protocol</small></span>
       </a>
       <div class="header-context">
+        <span class="execution-mode-badge" id="execution-mode">Mode: live API</span>
         <span class="environment-badge"><span class="status-dot" aria-hidden="true"></span> Synthetic environment</span>
         <span id="readiness" class="readiness" role="status" aria-live="polite">Checking service…</span>
       </div>
@@ -30,6 +31,9 @@
         </button>
         <button class="nav-item" type="button" data-nav="execution" aria-label="Execution trace">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4v16M6 7h9a3 3 0 0 1 0 6H9"></path><path d="M6 17h12"></path></svg><span>Execution</span>
+        </button>
+        <button class="nav-item" type="button" data-nav="validation" aria-label="Validation dashboard">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v14H5z"></path><path d="m8 12 2.5 2.5L16 9"></path></svg><span>Validation</span>
         </button>
         <div class="nav-rail-footer"><span class="rail-pulse" aria-hidden="true"></span><small>LOCAL</small></div>
       </nav>
@@ -55,12 +59,12 @@
             <div class="composer-field scenario-field">
               <label for="filter">Search scenarios</label>
               <div class="search-wrap"><span aria-hidden="true">⌕</span><input id="filter" type="search" placeholder="ID, domain, symptom" autocomplete="off"></div>
-              <p id="sample-count" class="field-note">Loading scenarios…</p>
+              <p id="sample-count" class="field-note">Loading interactive investigation scenarios…</p>
             </div>
             <div class="composer-field">
               <label for="scenario">Scenario selection</label>
               <select id="scenario"></select>
-              <p class="field-note">Select an incident context from the synthetic operations lab.</p>
+              <p class="field-note">Select an incident context from the synthetic operations lab. These scenarios are separate from the retrieval benchmark. Explore the separate 1,200-case synthetic retrieval benchmark in Validation.</p>
             </div>
             <div class="composer-field question-field">
               <label for="question">Investigation question</label>
@@ -76,9 +80,28 @@
           <div class="synthetic-disclosure"><span aria-hidden="true">i</span><p>Demo data is synthetic. AEGIS validates citation identity and reports uncertainty instead of certifying a production root cause.</p></div>
         </section>
 
+        <section class="signal-grid" aria-label="AEGIS system capabilities">
+          <article class="signal-card">
+            <span class="signal-index">01 / Evidence chain</span>
+            <h2>Inspect what supports the conclusion.</h2>
+            <p>Source IDs, excerpts, citation status, gaps, and contradictions stay visible after every investigation.</p>
+          </article>
+          <article class="signal-card">
+            <span class="signal-index">02 / Bounded workflow</span>
+            <h2>Follow the actual investigation path.</h2>
+            <p>Sequential LangGraph stages expose execution state without implying work that did not run.</p>
+          </article>
+          <article class="signal-card signal-card-action">
+            <span class="signal-index">03 / Evaluation lab</span>
+            <h2>Measure the trade-offs.</h2>
+            <p>Review the synthetic benchmark, provenance, limitations, and recorded fallback mode.</p>
+            <button class="quiet-action" type="button" data-nav="validation">Open validation <span aria-hidden="true">→</span></button>
+          </article>
+        </section>
+
         <section id="empty-state" class="empty-state" aria-labelledby="empty-title" hidden>
           <div class="empty-mark" aria-hidden="true"><span>INV</span><strong>→</strong><span>VERIFY</span></div>
-          <div><span class="section-kicker">Ready to investigate</span><h2 id="empty-title">Loading investigation scenarios</h2><p id="empty-description">The report will surface an evidence-supported assessment, explicit uncertainty, and the bounded execution trace.</p></div>
+          <div><span class="section-kicker">Ready to investigate</span><h2 id="empty-title">Loading investigation scenarios</h2><p id="empty-description">The report will surface an evidence-supported assessment, explicit uncertainty, and the bounded execution trace.</p><button id="recorded-fallback" class="quiet-action" type="button" hidden>Open recorded local example</button></div>
         </section>
 
         <section id="execution-indicator" class="execution-indicator" aria-live="polite" hidden>
@@ -127,6 +150,15 @@
           <div id="execution-view-summary" class="execution-summary"><div><span class="subsection-label">Current state</span><strong id="execution-view-label">Ready</strong><p id="execution-view-detail">Run an investigation to populate execution details.</p></div><div id="execution-view-meta" class="execution-meta"></div></div>
           <div id="execution-view-empty" class="view-empty"><h3>No execution trace yet</h3><p>Execution details will appear here after a completed investigation.</p><button class="quiet-action" type="button" data-nav="investigate">Return to Investigate <span aria-hidden="true">→</span></button></div>
           <div id="execution-view-trace-panel" class="execution-trace-panel" hidden><div class="panel-heading"><div><span class="section-kicker">Execution trace</span><h3>Bounded workflow stages</h3></div><span class="detail-hint">Current session only</span></div><ol id="execution-view-trace" class="trace-list"></ol></div>
+        </section>
+
+        <section id="view-validation" class="workspace-view" data-view="validation" aria-labelledby="workspace-title" hidden>
+          <div class="validation-intro"><div><span class="section-kicker">Evidence quality / benchmark laboratory</span><p>A controlled comparison of the legacy and optimized retrieval profiles on the same synthetic workload. These measurements describe retrieval behavior, not production answer accuracy.</p></div><span class="execution-mode-badge">Mode: benchmark artifact</span></div>
+          <div id="benchmark-provenance" class="provenance-banner">Loading validated artifact…</div>
+          <div class="benchmark-context"><div><span class="subsection-label">Evaluation scope</span><strong id="benchmark-scope">Loading scope…</strong></div><div><span class="subsection-label">Interpretation</span><span id="benchmark-interpretation">Synthetic retrieval evidence, not a production claim.</span></div></div>
+          <div id="benchmark-overview" class="benchmark-overview"></div>
+          <div class="benchmark-grid"><section class="benchmark-panel"><div class="panel-heading"><div><span class="section-kicker">Retrieval comparison</span><h3>Legacy versus optimized</h3></div><span class="detail-hint">Same 1,200-case workload</span></div><div id="benchmark-comparison" class="comparison-bars"></div></section><section class="benchmark-panel"><div class="panel-heading"><div><span class="section-kicker">Failure shape</span><h3>Recall by category</h3></div><span class="detail-hint">Optimized profile</span></div><div id="benchmark-categories" class="category-bars"></div></section></div>
+          <section class="benchmark-panel benchmark-method"><div class="panel-heading"><div><span class="section-kicker">Limitations and provenance</span><h3>What this evidence can and cannot support</h3></div></div><div id="benchmark-abstention" class="benchmark-callout"></div><ul id="benchmark-limitations" class="limitation-list"></ul><p class="report-footnote">Review the source JSON and reproduction command before making external claims. Human review of the quality-audit packet remains separate and pending.</p></section>
         </section>
         </div>
       </main>

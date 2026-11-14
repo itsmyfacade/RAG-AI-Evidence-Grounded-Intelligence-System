@@ -7,7 +7,7 @@ validated.
 
 Before any deployment, verify the target runtime contract, IAM execution role,
 network egress, secret injection, request timeout, persistent data strategy,
-and Bedrock model access. The local SQLite and Chroma stores are demonstration
+and Bedrock model access. The local SQLite and semantic vector stores are demonstration
 stores; a hosted deployment needs durable storage or a startup rebuild.
 
 AEGIS does not use Bedrock Agents Classic.

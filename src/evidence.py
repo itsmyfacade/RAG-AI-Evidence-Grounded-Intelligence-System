@@ -7,6 +7,12 @@ from dataclasses import dataclass, field
 
 from src.schemas import Claim, EvidenceRecord
 
+_SUPPORT_STOPWORDS = {
+    "about", "after", "against", "claim", "evidence", "fact", "from", "investigation",
+    "record", "records", "report", "reported", "source", "that", "the", "this", "used",
+    "with", "within",
+}
+
 
 def extract_citation_ids(text: str) -> list[str]:
     groups = re.findall(r"\[([A-Z]+-[A-Z0-9-]+(?:\s*,\s*[A-Z]+-[A-Z0-9-]+)*)\]", text)
@@ -59,8 +65,16 @@ def assess_claim_support(claim: Claim, evidence: list[EvidenceRecord]) -> Claim:
     by_id = {item.evidence_id: item for item in evidence}
     if not claim.evidence_refs or any(ref not in by_id for ref in claim.evidence_refs):
         return claim.model_copy(update={"support_status": "unsupported", "rationale": "No resolvable canonical evidence references."})
-    terms = set(re.findall(r"[a-zA-Z0-9_:-]{4,}", claim.statement.lower()))
-    source_terms = set(re.findall(r"[a-zA-Z0-9_:-]{4,}", " ".join(by_id[ref].excerpt.lower() for ref in claim.evidence_refs)))
-    if len(terms & source_terms) >= 2:
-        return claim.model_copy(update={"support_status": "supported", "rationale": "Lexical support check passed; this is not entailment proof."})
-    return claim.model_copy(update={"support_status": "partially_supported", "rationale": "Canonical evidence exists but lexical support is weak."})
+    terms = {
+        term for term in re.findall(r"[a-zA-Z0-9_:-]{4,}", claim.statement.lower())
+        if term not in _SUPPORT_STOPWORDS
+    }
+    overlap_by_ref = {
+        ref: len(terms & set(re.findall(r"[a-zA-Z0-9_:-]{4,}", by_id[ref].excerpt.lower())))
+        for ref in claim.evidence_refs
+    }
+    if not terms or not any(overlap_by_ref.values()):
+        return claim.model_copy(update={"support_status": "unsupported", "rationale": "Citation IDs are valid, but the cited excerpts contain no lexical support for the claim."})
+    if min(overlap_by_ref.values()) >= 2:
+        return claim.model_copy(update={"support_status": "supported", "rationale": "Lexical support check passed for every cited excerpt; this is not entailment proof."})
+    return claim.model_copy(update={"support_status": "partially_supported", "rationale": "At least one cited excerpt is weak or irrelevant by lexical comparison; semantic entailment was not established."})

@@ -51,11 +51,10 @@ installs the lite runtime, starts the local server through Playwright's
 traces are retained as workflow artifacts when available.
 
 The separately named `standard-profile-security-report` job installs the
-optional standard dependencies, runs the Chroma regression tests, and uploads
-the complete standard-profile `pip-audit` output. Its audit is informational
-only because current ChromaDB advisories have no reported fixed version; the
-job visibly warns and records the nonzero audit result rather than suppressing
-it. A successful lite gate does not certify standard semantic-RAG security.
+optional standard dependencies, runs the local semantic-index regression tests,
+and uploads the complete standard-profile `pip-audit` output. The audit is a
+required failing gate over the fully resolved installed environment. A
+successful lite gate does not certify standard semantic-RAG security.
 
 A failed Python gate indicates a source, contract, regression, or dependency
 problem. A failed browser gate should first be classified as server startup,
