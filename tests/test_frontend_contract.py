@@ -79,3 +79,12 @@ def test_frontend_rendering_contract_handles_real_api_states() -> None:
     assert "No additional evidence gaps or contradictions were reported." in script
     assert 'show("empty-state", lifecycle === "failed")' in script
     assert 'show("execution-indicator", ["running", "completed", "failed"].includes(lifecycle))' in script
+
+
+def test_frontend_navigation_preserves_root_and_render_mounts() -> None:
+    index = (ROOT / "frontend" / "index.html").read_text(encoding="utf-8")
+    review = (ROOT / "frontend" / "review.html").read_text(encoding="utf-8")
+    assert 'href="./"' in index
+    assert review.count('href="./"') == 2
+    assert 'href="/demo/"' not in index
+    assert 'href="/demo/"' not in review

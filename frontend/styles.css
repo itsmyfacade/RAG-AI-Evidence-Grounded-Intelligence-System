@@ -108,6 +108,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .review-intro { padding: 4rem 0 2rem; }
 .review-intro h1 { max-width: 780px; margin: .45rem 0 .8rem; font-size: clamp(2.2rem, 5vw, 4.8rem); letter-spacing: -.06em; }
 .review-intro > p { max-width: 70ch; color: var(--muted); line-height: 1.65; }
+.review-file-loaders { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; margin-top: 1.25rem; }
+.review-storage-status { color: var(--teal); }.review-storage-status.is-warning { color: var(--amber); }
 .file-loader > span { color: var(--text); font-size: .78rem; font-weight: 750; letter-spacing: .02em; }
 .file-loader small { color: var(--faint); font-size: .67rem; line-height: 1.4; }
 .file-loader input::file-selector-button { margin-right: .6rem; padding: .45rem .6rem; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface-raised); color: var(--text); font: inherit; cursor: pointer; }
@@ -153,9 +155,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .review-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: .7rem; margin: 1rem 0 0; padding: 0; list-style: none; counter-reset: review-step; }
 .review-steps li { display: flex; gap: .65rem; padding: .8rem; border-top: 2px solid var(--line-strong); background: rgba(13, 23, 37, .58); }.review-steps li > span { color: var(--cyan); font: .65rem ui-monospace, SFMono-Regular, Menlo, monospace; }.review-steps strong, .review-steps small { display: block; }.review-steps strong { color: var(--text); font-size: .75rem; }.review-steps small { margin-top: .25rem; color: var(--muted); font-size: .68rem; line-height: 1.4; }
 .review-progress-panel { margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--line); border-top: 2px solid var(--teal); background: rgba(17, 29, 45, .72); }
-.review-progress-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }.review-progress-stats span { display: block; color: var(--faint); font-size: .61rem; letter-spacing: .1em; text-transform: uppercase; }.review-progress-stats strong { display: block; margin-top: .3rem; color: var(--text); font-size: 1.2rem; }.review-progress-track { height: .45rem; margin-top: .9rem; overflow: hidden; border: 1px solid var(--line); background: rgba(255,255,255,.04); }.review-progress-track span { display: block; width: 0; height: 100%; background: linear-gradient(90deg, var(--cyan), var(--teal)); transition: width .25s ease; }
+.review-progress-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; }.review-progress-stats span { display: block; color: var(--faint); font-size: .61rem; letter-spacing: .1em; text-transform: uppercase; }.review-progress-stats strong { display: block; margin-top: .3rem; color: var(--text); font-size: 1.2rem; }.review-progress-track { height: .45rem; margin-top: .9rem; overflow: hidden; border: 1px solid var(--line); background: rgba(255,255,255,.04); }.review-progress-track span { display: block; width: 0; height: 100%; background: linear-gradient(90deg, var(--cyan), var(--teal)); transition: width .25s ease; }
 .review-export { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; }.review-export h2 { margin-top: .35rem; }.review-export .quiet-action:disabled { cursor: not-allowed; opacity: .45; }
 @media (max-width: 900px) { .validation-intro, .review-export { align-items: flex-start; flex-direction: column; }.benchmark-context { grid-template-columns: 1fr; }.benchmark-callout { grid-template-columns: 1fr; }.review-steps { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .review-file-loaders { grid-template-columns: 1fr; } }
 @media (max-width: 600px) { .review-empty-state { align-items: flex-start; }.review-progress-stats { grid-template-columns: repeat(2, 1fr); }.review-header-actions { align-items: flex-end; flex-direction: column; gap: .35rem; }.review-back { font-size: .66rem; } }
 /* Final command-surface geometry */
 .search-wrap input { min-height: 44px; }

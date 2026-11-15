@@ -73,7 +73,8 @@ test.describe("AEGIS hosted-lite investigation workbench", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(page.getByRole("heading", { name: "Ground-truth review" })).toBeVisible();
     await expect(page.getByText("One case at a time, with the evidence beside it.", { exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: /complete review first/i })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Export review decisions" })).toBeDisabled();
+    await expect(page.getByLabel("Import saved decisions")).toBeVisible();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
     expect(overflow).toBe(false);
   });
@@ -97,15 +98,47 @@ test.describe("AEGIS hosted-lite investigation workbench", () => {
     await page.locator("#packet-file").setInputFiles({ name: "packet.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(packet)) });
     await expect(page.locator("#review-total")).toHaveText("1");
     await expect(page.locator("#pending-count")).toHaveText("1");
-    await expect(page.getByRole("button", { name: /complete review first/i })).toBeDisabled();
     await page.locator("#decision").selectOption("confirmed");
     await page.locator("#review-notes").fill("Source supports the observed behavior.");
     await page.getByRole("button", { name: "Save decision" }).click();
     await expect(page.locator("#reviewed-count")).toHaveText("1");
+    await expect(page.locator("#ambiguous-count")).toHaveText("0");
     await expect(page.locator("#review-progress-label")).toHaveText("100%");
     const downloadPromise = page.waitForEvent("download");
     await page.getByRole("button", { name: "Export review decisions" }).click();
     expect((await downloadPromise).suggestedFilename()).toBe("aegis-ground-truth-review-decisions.json");
+  });
+
+  test("restores matching decisions and rejects a mismatched export", async ({ page }) => {
+    await page.goto("/demo/review.html");
+    const packet = { dataset_version: "resume-packet", cases: [{ case_id: "RESUME-001", category: "api", split: "validation", answerability: "answerable", difficulty: "introductory", question: "Can this case resume?", expected_evidence: [], potential_distractors: [], review_rationale: "Check persistence." }] };
+    await page.locator("#packet-file").setInputFiles({ name: "packet.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(packet)) });
+    await page.locator("#decision").selectOption("ambiguous");
+    await page.locator("#review-notes").fill("Needs a second look.");
+    await expect(page.locator("#storage-status")).toContainText("Saved locally");
+    await page.reload();
+    await page.locator("#packet-file").setInputFiles({ name: "packet.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(packet)) });
+    await expect(page.locator("#reviewed-count")).toHaveText("1");
+    await expect(page.locator("#ambiguous-count")).toHaveText("1");
+    await expect(page.locator("#review-notes")).toHaveValue("Needs a second look.");
+    const mismatch = { schema_version: "aegis-phase4-review-decisions-v1", packet_fingerprint: "sha256-not-this-packet", decisions: { "RESUME-001": { decision: "confirmed", notes: "wrong", reviewed_at: new Date().toISOString() } } };
+    await page.locator("#decisions-file").setInputFiles({ name: "wrong.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(mismatch)) });
+    await expect(page.locator("#review-status")).toContainText("different review packet");
+    page.once("dialog", (dialog) => dialog.accept());
+    await page.getByRole("button", { name: "Reset saved decisions" }).click();
+  });
+
+  test("reports browser storage failures without hiding the export path", async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(window, "localStorage", { configurable: true, get: () => ({ getItem: () => { throw new Error("storage blocked"); }, setItem: () => { throw new Error("storage blocked"); }, removeItem: () => { throw new Error("storage blocked"); } }) });
+    });
+    await page.goto("/demo/review.html");
+    await expect(page.locator("#storage-status")).toContainText("Browser storage is unavailable");
+    const packet = { dataset_version: "storage-failure-packet", cases: [{ case_id: "STORAGE-001", category: "api", split: "validation", answerability: "answerable", difficulty: "introductory", question: "Can export recover this work?", expected_evidence: [], potential_distractors: [], review_rationale: "Check export fallback." }] };
+    await page.locator("#packet-file").setInputFiles({ name: "packet.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(packet)) });
+    await page.locator("#decision").selectOption("confirmed");
+    await expect(page.locator("#storage-status")).toContainText("Could not save locally");
+    await expect(page.getByRole("button", { name: "Export review decisions" })).toBeEnabled();
   });
 
   for (const width of [390, 768, 1024, 1440, 1920]) {
