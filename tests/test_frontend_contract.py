@@ -5,11 +5,13 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_frontend_exposes_the_investigation_console_structure() -> None:
     markup = (ROOT / "frontend" / "index.html").read_text(encoding="utf-8")
-    for required_id in ("filter", "sample-count", "scenario", "question", "question-note", "run", "action-readiness", "action-message", "readiness", "empty-state", "empty-title", "empty-description", "execution-indicator", "execution-label", "execution-detail", "execution-action", "report", "findings", "operations", "uncertainty", "trace", "evidence", "view-investigate", "view-scenarios", "view-execution", "view-validation", "benchmark-provenance", "benchmark-scope", "benchmark-interpretation", "benchmark-abstention", "benchmark-overview", "benchmark-comparison", "benchmark-categories", "catalog-filter", "scenario-catalog", "execution-view-trace", "workspace-subtitle"):
+    for required_id in ("filter", "sample-count", "scenario", "question", "question-note", "run", "action-readiness", "action-message", "readiness", "empty-state", "empty-title", "empty-description", "execution-indicator", "execution-label", "execution-detail", "execution-action", "report", "findings", "operations", "uncertainty", "trace", "evidence", "view-investigate", "view-scenarios", "view-execution", "view-validation", "benchmark-provenance", "benchmark-error", "benchmark-error-message", "benchmark-retry", "benchmark-scope", "benchmark-interpretation", "benchmark-abstention", "benchmark-overview", "benchmark-comparison", "benchmark-categories", "catalog-filter", "scenario-catalog", "execution-view-trace", "workspace-subtitle"):
         assert f'id="{required_id}"' in markup
     for required_class in ("app-frame", "nav-rail", "command-area", "analysis-layout", "operational-panel", "decision-panel", "detail-region"):
         assert required_class in markup
     assert 'class="wordmark"' in markup
+    assert 'rel="icon"' in markup
+    assert 'href="favicon.svg"' in markup
     assert '<svg class="brand-mark"' not in markup
     assert "mark-shield" not in markup
     assert "Investigation in progress" not in markup
@@ -55,7 +57,7 @@ def test_frontend_layout_is_fluid_and_question_field_is_readable() -> None:
 
 def test_frontend_rendering_contract_handles_real_api_states() -> None:
     script = (ROOT / "frontend" / "app.js").read_text(encoding="utf-8")
-    for token in ("loadReadiness", "renderReport", "renderFindings", "renderEvidence", "renderTrace", "renderScenarioCatalog", "selectScenario", "setLifecycle", "AbortController", "readResponse", "friendlyError", "navigate", "setDetail", "invalidateReport", "workspace-subtitle", "stageLabels", "trace-topline"):
+    for token in ("loadReadiness", "renderReport", "renderFindings", "renderEvidence", "renderTrace", "renderScenarioCatalog", "selectScenario", "setLifecycle", "AbortController", "readResponse", "friendlyError", "navigate", "setDetail", "invalidateReport", "workspace-subtitle", "stageLabels", "trace-topline", "validateBenchmark", "renderBenchmarkError", "benchmarkLoading", "document.baseURI", "benchmark-retry"):
         assert token in script
     assert "renderEmptyState" in script
     assert "Ready to investigate" in script
@@ -79,6 +81,18 @@ def test_frontend_rendering_contract_handles_real_api_states() -> None:
     assert "No additional evidence gaps or contradictions were reported." in script
     assert 'show("empty-state", lifecycle === "failed")' in script
     assert 'show("execution-indicator", ["running", "completed", "failed"].includes(lifecycle))' in script
+    assert "new Set(ids)" in script
+
+
+def test_frontend_entry_points_reference_the_original_aegis_favicon() -> None:
+    for filename in ("index.html", "review.html", "model-review.html"):
+        markup = (ROOT / "frontend" / filename).read_text(encoding="utf-8")
+        assert '<link rel="icon" href="favicon.svg" type="image/svg+xml">' in markup
+    favicon = (ROOT / "frontend" / "favicon.svg").read_text(encoding="utf-8")
+    assert favicon.startswith("<svg")
+    assert "#0B1220" in favicon
+    assert "#40C8DF" in favicon
+    assert "#fff" in favicon
 
 
 def test_frontend_navigation_preserves_root_and_render_mounts() -> None:

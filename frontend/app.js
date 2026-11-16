@@ -12,6 +12,7 @@ const state = {
   error: null,
   activeDetail: "evidence",
   benchmark: null,
+  benchmarkLoading: null,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -374,6 +375,7 @@ function renderReport(data) {
 
 function renderBenchmark(data) {
   state.benchmark = data;
+  show("benchmark-error", false);
   const overview = $("benchmark-overview");
   const comparison = $("benchmark-comparison");
   const categories = $("benchmark-categories");
@@ -397,6 +399,26 @@ function renderBenchmark(data) {
   abstention.append(abstentionValue, abstentionCopy);
   for (const text of data.limitations || []) { const item = document.createElement("li"); item.className = "limitation-item"; const marker = document.createElement("span"); marker.setAttribute("aria-hidden", "true"); marker.textContent = "·"; const copy = document.createElement("p"); copy.textContent = text; item.append(marker, copy); limitations.append(item); }
   const provenance = $("benchmark-provenance"); provenance.textContent = `Artifact ${data.source_artifact} · dataset ${data.dataset_version} · checksum ${data.dataset_checksum.slice(0, 12)}… · ${data.execution_mode}`;
+}
+
+function validateBenchmark(data) {
+  const hasNumber = (value) => typeof value === "number" && Number.isFinite(value);
+  if (!data || data.artifact_schema !== "aegis-phase3-showcase-v1") throw new Error("The benchmark artifact schema is not supported.");
+  if (!Number.isInteger(data.evaluation_cases) || !Number.isInteger(data.corpus_documents) || !data.splits || !data.baseline || !data.optimized) throw new Error("The benchmark artifact is incomplete.");
+  for (const profile of [data.baseline, data.optimized]) {
+    for (const key of ["recall_at_5", "mrr", "ndcg_at_5", "evidence_coverage", "correct_abstention", "p95_ms"]) {
+      if (!hasNumber(profile[key])) throw new Error(`The benchmark artifact is missing ${key}.`);
+    }
+  }
+  return data;
+}
+
+function renderBenchmarkError(error) {
+  state.benchmark = null;
+  setText("benchmark-provenance", "Validation artifact unavailable. No benchmark results are being displayed.");
+  setText("benchmark-error-message", `${friendlyError(error)} Check the static asset path, then retry validation.`);
+  show("benchmark-error", true);
+  for (const id of ["benchmark-overview", "benchmark-comparison", "benchmark-categories", "benchmark-limitations", "benchmark-abstention"]) $(id)?.replaceChildren();
 }
 
 function populateSelect(samples) {
@@ -460,7 +482,7 @@ function renderScenarioCatalog(samples) {
 
 function filterSamples() {
   const needle = $("filter").value.trim().toLowerCase();
-  state.filtered = state.samples.filter((sample) => [sample.scenario_id, sample.title, sample.domain].join(" ").toLowerCase().includes(needle));
+  state.filtered = state.samples.filter((sample) => [sample.scenario_id, sample.title, sample.domain, sample.question].join(" ").toLowerCase().includes(needle));
   populateSelect(state.filtered);
   setText("sample-count", scenarioCountText(state.filtered.length, state.samples.length));
   renderScenarioCatalog(state.filtered);
@@ -493,11 +515,27 @@ function navigate(name) {
   if (target) target.focus({ preventScroll: true });
   if (name === "scenarios") renderScenarioCatalog(state.filtered);
   if (name === "execution") setLifecycle(state.lifecycle);
-  if (name === "validation" && !state.benchmark) loadBenchmark();
+  if (name === "validation") loadBenchmark();
 }
 
 async function loadBenchmark() {
-  try { const response = await fetchWithTimeout("benchmark.json", {}, 8000); const data = await readResponse(response); if (!response.ok) throw new Error("Benchmark artifact unavailable"); renderBenchmark(data); } catch (error) { setText("benchmark-provenance", `Benchmark artifact unavailable: ${friendlyError(error)}`); }
+  if (state.benchmark) return state.benchmark;
+  if (state.benchmarkLoading) return state.benchmarkLoading;
+  state.benchmarkLoading = (async () => {
+    try {
+      const response = await fetchWithTimeout(new URL("benchmark.json", document.baseURI), {}, 8000);
+      const data = await readResponse(response);
+      if (!response.ok) throw new Error(`Benchmark artifact unavailable (HTTP ${response.status}).`);
+      renderBenchmark(validateBenchmark(data));
+      return data;
+    } catch (error) {
+      renderBenchmarkError(error);
+      return null;
+    } finally {
+      state.benchmarkLoading = null;
+    }
+  })();
+  return state.benchmarkLoading;
 }
 
 async function loadRecordedFallback() {
@@ -528,7 +566,10 @@ async function loadSamples() {
   const response = await fetchWithTimeout("/samples", {}, 10000);
   const data = await readResponse(response);
   if (!response.ok) throw new Error(data.detail || "Sample scenarios are temporarily unavailable. Please retry.");
-  state.samples = Array.isArray(data) ? data : [];
+  if (!Array.isArray(data) || data.some((sample) => !sample || typeof sample.scenario_id !== "string" || !sample.scenario_id || typeof sample.question !== "string")) throw new Error("The scenario catalog is incomplete.");
+  const ids = data.map((sample) => sample.scenario_id);
+  if (new Set(ids).size !== ids.length) throw new Error("The scenario catalog contains duplicate IDs.");
+  state.samples = data;
   state.filtered = state.samples;
   populateSelect(state.samples);
   setText("sample-count", scenarioCountText(state.samples.length, state.samples.length));
@@ -609,6 +650,7 @@ $("scenario").addEventListener("change", () => { selectScenario($("scenario").va
 $("run").addEventListener("click", investigate);
 $("recorded-fallback").addEventListener("click", loadRecordedFallback);
 document.querySelectorAll("[data-nav]").forEach((button) => button.addEventListener("click", () => navigate(button.dataset.nav)));
+$("benchmark-retry").addEventListener("click", () => loadBenchmark());
 $("scenario-catalog").addEventListener("click", (event) => {
   const button = event.target.closest("[data-scenario]");
   if (!button) return;
