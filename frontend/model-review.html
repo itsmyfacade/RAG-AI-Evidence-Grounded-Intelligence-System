@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1220">
+  <title>AEGIS · Model-output review</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="fingerprint.js"></script>
+</head>
+<body>
+  <main class="review-shell model-review-shell">
+    <header class="review-header">
+      <a class="brand" href="./" aria-label="Return to AEGIS"><span class="wordmark"><strong class="wordmark-main">AEGIS</strong><span class="wordmark-rule" aria-hidden="true"></span><small>Model-output review</small></span></a>
+      <div class="review-header-actions"><a class="review-back" href="./">Back to workbench</a><span class="environment-badge">Local private review</span></div>
+    </header>
+    <section class="review-intro" aria-labelledby="model-review-title">
+      <span class="section-kicker">Phase 3 / Blinded evaluation</span>
+      <h1 id="model-review-title">Review captured AEGIS outputs</h1>
+      <p>Load a local capture and judge the actual response, retrieved evidence, and citations. Expected labels and rationales are intentionally withheld during the initial judgment.</p>
+      <div class="review-file-loaders"><label class="file-loader" for="model-packet-file"><span>Choose model-output packet</span><input id="model-packet-file" type="file" accept="application/json,.json"><small>Use a packet created by <code>tools/phase3_model_output.py capture</code>. It stays in your browser.</small></label><label class="file-loader" for="model-decisions-file"><span>Import saved decisions</span><input id="model-decisions-file" type="file" accept="application/json,.json"><small>Optional. Load an export from the matching run to resume.</small></label></div>
+      <p id="model-review-status" class="field-note" role="status" aria-live="polite">No model-output packet loaded.</p>
+      <p id="model-storage-status" class="field-note review-storage-status" role="status" aria-live="polite">No saved model-review state detected.</p>
+      <div class="review-empty-state"><div class="review-empty-mark" aria-hidden="true">40</div><div><strong>Judge the output before seeing the label.</strong><p>Assess evidence relevance, citation support, correctness, abstention, and uncertainty. Export partial work whenever you pause.</p></div></div>
+      <ol class="review-steps" aria-label="Model-output review process"><li><span>01</span><div><strong>Inspect</strong><small>Actual answer, findings, ranked evidence, and citations.</small></div></li><li><span>02</span><div><strong>Judge</strong><small>Record an overall decision and criterion-level reasons.</small></div></li><li><span>03</span><div><strong>Compare later</strong><small>Use the local reporting tool for controlled ground-truth comparison.</small></div></li></ol>
+    </section>
+    <section id="model-review-workspace" class="review-workspace" hidden aria-labelledby="model-case-title">
+      <div class="review-progress-panel"><div class="review-progress-stats"><div><span>Total cases</span><strong id="model-total">0</strong></div><div><span>Reviewed</span><strong id="model-reviewed-count">0</strong></div><div><span>Pending</span><strong id="model-pending-count">0</strong></div><div><span>Not assessable</span><strong id="model-not-assessable-count">0</strong></div><div><span>Progress</span><strong id="model-progress-label">0%</strong></div></div><div class="review-progress-track" aria-hidden="true"><span id="model-progress-bar"></span></div></div>
+      <div class="review-toolbar"><button id="model-previous-case" class="quiet-action" type="button">← Previous</button><strong id="model-case-position">Case 0 of 0</strong><button id="model-next-case" class="quiet-action" type="button">Next →</button><button id="model-reset-review" class="quiet-action" type="button">Reset saved decisions</button></div>
+      <article class="review-card">
+        <div class="review-meta"><span id="model-case-id" class="mono-label"></span><span id="model-case-status" class="status-badge"></span></div>
+        <h2 id="model-case-title"></h2>
+        <p id="model-case-question" class="review-question"></p>
+        <div class="review-columns"><section><h3>Actual AEGIS response</h3><div id="model-answer" class="model-output-text"></div><div id="model-findings"></div></section><section><h3>Retrieved evidence and citations</h3><div id="model-evidence"></div></section></div>
+        <p id="model-output-metadata" class="review-rationale"></p>
+        <div class="decision-form model-decision-form">
+          <label for="model-overall-decision">Overall decision<select id="model-overall-decision"><option value="pending">Pending</option><option value="supported_correct">Supported / correct</option><option value="partially_supported">Partially supported</option><option value="unsupported_incorrect">Unsupported / incorrect</option><option value="not_assessable">Not assessable</option></select></label>
+          <label for="model-evidence-relevance">Evidence relevance<select id="model-evidence-relevance"><option value="">Not recorded</option><option value="strong">Strong</option><option value="partial">Partial</option><option value="weak">Weak</option><option value="not_assessable">Not assessable</option></select></label>
+          <label for="model-citation-support">Citation support<select id="model-citation-support"><option value="">Not recorded</option><option value="supported">Supported</option><option value="partial">Partial</option><option value="unsupported">Unsupported</option><option value="not_assessable">Not assessable</option></select></label>
+          <label for="model-answer-correctness">Answer correctness<select id="model-answer-correctness"><option value="">Not recorded</option><option value="correct">Correct</option><option value="partial">Partial</option><option value="incorrect">Incorrect</option><option value="not_assessable">Not assessable</option></select></label>
+          <label for="model-abstention">Abstention<select id="model-abstention"><option value="">Not recorded</option><option value="appropriate">Appropriate</option><option value="inappropriate">Inappropriate</option><option value="not_applicable">Not applicable</option><option value="not_assessable">Not assessable</option></select></label>
+          <label for="model-uncertainty">Uncertainty handling<select id="model-uncertainty"><option value="">Not recorded</option><option value="appropriate">Appropriate</option><option value="partial">Partial</option><option value="missing">Missing</option><option value="not_assessable">Not assessable</option></select></label>
+          <label for="model-answerability-judgment">Your answerability judgment<select id="model-answerability-judgment"><option value="">Not recorded</option><option value="answerable">Answerable</option><option value="unanswerable">Unanswerable</option><option value="not_assessable">Not assessable</option></select></label>
+          <label for="model-review-notes">Decision reason and reviewer notes<textarea id="model-review-notes" rows="4" placeholder="Explain the evidence, citation, correctness, or uncertainty judgment."></textarea></label>
+          <button id="model-save-decision" class="primary-action" type="button">Save decision locally</button>
+        </div>
+      </article>
+    </section>
+    <section class="review-export"><div><span class="section-kicker">Separate private artifact</span><h2>Model-review state</h2><p>Export is the portable backup. Decisions are kept separate from the capture and are never sent to the AEGIS backend.</p></div><button id="model-export-review" class="quiet-action" type="button" disabled>Export model-review decisions</button></section>
+  </main>
+  <script src="model-review.js"></script>
+</body>
+</html>

@@ -88,3 +88,19 @@ def test_frontend_navigation_preserves_root_and_render_mounts() -> None:
     assert review.count('href="./"') == 2
     assert 'href="/demo/"' not in index
     assert 'href="/demo/"' not in review
+
+
+def test_model_output_review_is_separate_and_blinded() -> None:
+    markup = (ROOT / "frontend" / "model-review.html").read_text(encoding="utf-8")
+    script = (ROOT / "frontend" / "model-review.js").read_text(encoding="utf-8")
+    assert 'src="model-review.js"' in markup
+    assert 'src="fingerprint.js"' in markup
+    assert "aegis-phase3-fingerprint-v3" in script
+    for required_id in ("model-packet-file", "model-decisions-file", "model-review-workspace", "model-answer", "model-evidence", "model-overall-decision", "model-review-notes", "model-export-review"):
+        assert f'id="{required_id}"' in markup
+    assert "aegis-phase3-model-output-review-packet-v1" in script
+    assert "aegis-model-output-review-state-v1" in script
+    assert "blinded_initial_judgment" in script
+    assert "localStorage" in script
+    assert "expected_evidence" not in markup
+    assert "expected_citation_ids" not in markup
