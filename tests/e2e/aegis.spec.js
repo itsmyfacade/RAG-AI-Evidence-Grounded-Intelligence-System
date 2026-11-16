@@ -141,6 +141,42 @@ test.describe("AEGIS hosted-lite investigation workbench", () => {
     await expect(page.getByRole("button", { name: "Export review decisions" })).toBeEnabled();
   });
 
+  test("reviews captured model output without exposing expected labels", async ({ page }) => {
+    await page.goto("/demo/model-review.html");
+    const packet = {
+      schema_version: "aegis-phase3-model-output-review-packet-v1",
+      source_run_id: "test-run",
+      blinded: true,
+      cases: [{
+        case_id: "RET-001",
+        question: "What did AEGIS observe?",
+        output_status: "completed",
+        actual_output: { answer: "Actual captured answer", findings: [], retrieved_evidence: [{ rank: 1, evidence_id: "DOC-001", excerpt: "Observed evidence." }], citations: ["DOC-001"], abstention: { status: "not_abstained" } },
+        run_metadata: { provider: "local", model: "deterministic-local", retrieval_mode: "lexical", latency_ms: 2 },
+      }],
+    };
+    await page.locator("#model-packet-file").setInputFiles({ name: "model-output.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(packet)) });
+    await expect(page.locator("#model-total")).toHaveText("1");
+    await expect(page.getByText("Actual captured answer", { exact: true })).toBeVisible();
+    await expect(page.getByText("Expected evidence", { exact: true })).toHaveCount(0);
+    await page.locator("#model-overall-decision").selectOption("supported_correct");
+    await page.locator("#model-review-notes").fill("The captured evidence supports the observed statement.");
+    await expect(page.locator("#model-overall-decision")).toHaveValue("supported_correct");
+    await expect(page.locator("#model-review-notes")).toHaveValue("The captured evidence supports the observed statement.");
+    await page.getByRole("button", { name: "Save decision locally" }).click();
+    await expect(page.locator("#model-reviewed-count")).toHaveText("1");
+    const downloadPromise = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Export model-review decisions" }).click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toBe("aegis-model-output-review-decisions.json");
+    const stream = await download.createReadStream();
+    const chunks = [];
+    for await (const chunk of stream) chunks.push(chunk);
+    const exported = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+    expect(exported.schema_version).toBe("aegis-phase3-model-output-decisions-v3");
+    expect(exported.fingerprint_contract).toBe("aegis-phase3-fingerprint-v3");
+  });
+
   for (const width of [390, 768, 1024, 1440, 1920]) {
     test(`does not overflow horizontally at ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });

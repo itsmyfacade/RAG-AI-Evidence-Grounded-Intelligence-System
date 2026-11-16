@@ -96,7 +96,7 @@ Relative change is `(optimized - legacy) / legacy`. Abstention is reported in pe
 
 The optimized local retrieval p95 was 2.585 ms. The legacy profile measured 1.422 ms p95 under the same local harness. The optimized profile trades a small latency increase for stronger ranking quality.
 
-These are synthetic retrieval measurements, not production accuracy, diagnosis accuracy, semantic entailment, or hallucination-prevention claims. The benchmark has evidence-family reuse across splits, ambiguous-case abstention remains weak, and the 40-case review packet has not received independent human decisions. Citation identity checks do not prove semantic entailment, and retrieval-level false-answer proxies do not measure final-answer hallucination. Confidence intervals, checksums, methodology, and exact commands are documented in [`docs/PHASE3_RELEASE_EVIDENCE.md`](docs/PHASE3_RELEASE_EVIDENCE.md).
+These are synthetic retrieval measurements, not production accuracy, diagnosis accuracy, semantic entailment, or hallucination-prevention claims. The benchmark has evidence-family reuse across splits and ambiguous-case abstention remains weak. The separate 40-case model-output review is complete as a human-supervised, AI-assisted, single-reviewer evaluation of one deterministic configuration; the independent ground-truth label review remains pending. Its 39 partially supported responses are reviewer classifications, not a model accuracy percentage. Citation identity checks do not prove semantic entailment, and retrieval-level false-answer proxies do not measure final-answer hallucination. Retrieval answerability and investigation-conclusion sufficiency are distinct constructs. Confidence intervals, checksums, methodology, and exact commands are documented in [`docs/PHASE3_RELEASE_EVIDENCE.md`](docs/PHASE3_RELEASE_EVIDENCE.md).
 
 ## Evaluation integrity
 
@@ -105,11 +105,13 @@ These are synthetic retrieval measurements, not production accuracy, diagnosis a
 - Splits: development 700, validation 200, held-out 300.
 - Correct abstention is a retrieval-level proxy, not final answer correctness.
 - Citation identity is separate from semantic claim support.
-- The current 40-case human-review packet remains pending independent review.
+- The 40-case model-output review is complete as a human-supervised, AI-assisted, single-reviewer, configuration-specific evaluation; the independent ground-truth label review remains pending.
+- The 39 partially supported model-output classifications are not a model accuracy percentage.
+- Retrieval answerability measures relevant-document availability, while reviewer answerability measures investigation-conclusion sufficiency.
 - Evidence families are reused across splits, so full family-disjoint independence is not claimed.
 - Mixed-source retrieval and ambiguous-case abstention remain known weaknesses.
 
-The review workflow is available at `/demo/review.html` when running the local static mount. Load `data/evaluation/results/phase3-ground-truth-review-packet.json` through the file picker, record decisions after independent inspection, and export the separate decision JSON.
+The ground-truth label-review workflow is available at `/demo/review.html` when running the local static mount. The separate model-output review workflow is available at `/demo/model-review.html`; its private capture packets and decision exports remain local and are not serving data.
 
 ## Local setup
 
@@ -235,7 +237,7 @@ npm run test:e2e
 
 GitHub Actions runs lightweight Python quality, API, frontend syntax, browser, and standard-profile security-gate jobs. Heavy benchmark reproduction remains a documented local command rather than a required per-push job.
 
-The latest local release-preflight validation recorded **88 Python tests passed**, **9 Playwright browser tests passed**, Ruff passed, Python compilation passed, JavaScript syntax checks passed, benchmark, recorded-demo, and Vercel JSON validation passed, and `npm audit --audit-level=high` reported **0 vulnerabilities**. These checks establish local regression evidence; they do not guarantee public Render reliability.
+The latest local release-preflight validation recorded **112 Python tests passed**, **12 Playwright browser tests passed**, Ruff passed, Python compilation passed, JavaScript syntax checks passed, benchmark, recorded-demo, and Vercel JSON validation passed, and `npm audit --audit-level=high` reported **0 vulnerabilities**. These checks establish local regression evidence; they do not guarantee public Render reliability.
 
 ## Docker and Render
 
