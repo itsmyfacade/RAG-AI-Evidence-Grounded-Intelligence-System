@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">AEGIS</title>
+  <desc id="desc">Geometric white A monogram with a cyan evidence mark on navy.</desc>
+  <rect width="64" height="64" rx="12" fill="#0B1220"/>
+  <path d="M14 50 28.5 14h7L50 50h-8l-3.3-9H25.3L22 50Zm13.8-16h8.4L32 22.5Z" fill="#fff"/>
+  <path d="M38.5 33.5 45 27v7.5l-4 4Z" fill="#40C8DF"/>
+</svg>

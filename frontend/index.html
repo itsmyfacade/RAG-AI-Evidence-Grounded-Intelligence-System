@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b1220">
   <title>AEGIS · Incident Intelligence Protocol</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -155,6 +156,7 @@
         <section id="view-validation" class="workspace-view" data-view="validation" aria-labelledby="workspace-title" hidden>
           <div class="validation-intro"><div><span class="section-kicker">Evidence quality / benchmark laboratory</span><p>A controlled comparison of the legacy and optimized retrieval profiles on the same synthetic workload. These measurements describe retrieval behavior, not production answer accuracy.</p></div><span class="execution-mode-badge">Mode: benchmark artifact</span></div>
           <div id="benchmark-provenance" class="provenance-banner">Loading validated artifact…</div>
+          <div id="benchmark-error" class="benchmark-error" role="alert" hidden><strong>Validation artifact unavailable</strong><p id="benchmark-error-message">The benchmark could not be loaded.</p><button id="benchmark-retry" class="quiet-action" type="button">Retry validation</button></div>
           <div class="benchmark-context"><div><span class="subsection-label">Evaluation scope</span><strong id="benchmark-scope">Loading scope…</strong></div><div><span class="subsection-label">Interpretation</span><span id="benchmark-interpretation">Synthetic retrieval evidence, not a production claim.</span></div></div>
           <div id="benchmark-overview" class="benchmark-overview"></div>
           <div class="benchmark-grid"><section class="benchmark-panel"><div class="panel-heading"><div><span class="section-kicker">Retrieval comparison</span><h3>Legacy versus optimized</h3></div><span class="detail-hint">Same 1,200-case workload</span></div><div id="benchmark-comparison" class="comparison-bars"></div></section><section class="benchmark-panel"><div class="panel-heading"><div><span class="section-kicker">Failure shape</span><h3>Recall by category</h3></div><span class="detail-hint">Optimized profile</span></div><div id="benchmark-categories" class="category-bars"></div></section></div>

@@ -79,6 +79,54 @@ test.describe("AEGIS hosted-lite investigation workbench", () => {
     expect(overflow).toBe(false);
   });
 
+  test("keeps validation reachable throughout the investigation lifecycle", async ({ page }) => {
+    await page.getByRole("button", { name: "Validation dashboard" }).click();
+    await expect(page.getByRole("heading", { name: "Validation dashboard", exact: true })).toBeVisible();
+    await expect(page.getByText(/Artifact phase3-optimized-final-run1-result\.json/)).toBeVisible();
+
+    await page.getByRole("button", { name: "Investigate workspace" }).click();
+    const investigation = page.waitForResponse(
+      (response) => response.url().endsWith("/investigate") && response.request().method() === "POST",
+    );
+    await page.getByRole("button", { name: /Run investigation/i }).click();
+    expect((await investigation).status()).toBe(200);
+    await expect(page.getByRole("heading", { name: "Evidence-backed assessment" })).toBeVisible();
+
+    await page.getByRole("button", { name: "Validation dashboard" }).click();
+    await expect(page.getByRole("heading", { name: "Validation dashboard", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Execution trace", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Workflow timeline" })).toBeVisible();
+    await page.getByRole("button", { name: "Validation dashboard" }).click();
+    await expect(page.getByText(/Artifact phase3-optimized-final-run1-result\.json/)).toBeVisible();
+    await page.getByRole("button", { name: "Investigate workspace" }).click();
+    await expect(page.getByRole("heading", { name: "Evidence-backed assessment" })).toBeVisible();
+  });
+
+  test("shows an actionable validation error when the benchmark asset fails", async ({ page }) => {
+    await page.route("**/benchmark.json", (route) => route.fulfill({ status: 503, contentType: "application/json", body: "{}" }));
+    await page.reload();
+    await page.getByRole("button", { name: "Validation dashboard" }).click();
+    await expect(page.locator("#benchmark-error")).toBeVisible();
+    await expect(page.locator("#benchmark-error-message")).toContainText("HTTP 503");
+    await expect(page.getByRole("button", { name: "Retry validation" })).toBeVisible();
+  });
+
+  test("serves the favicon and exposes the complete scenario catalog", async ({ page }) => {
+    await page.reload();
+    const faviconResponse = await page.request.get("/demo/favicon.svg");
+    expect(faviconResponse.status()).toBe(200);
+    expect(faviconResponse.headers()["content-type"]).toContain("image/svg+xml");
+    await expect(page.locator('link[rel="icon"]')).toHaveAttribute("href", "favicon.svg");
+
+    const samplesResponse = await page.request.get("/samples");
+    expect(samplesResponse.ok()).toBe(true);
+    const samples = await samplesResponse.json();
+    expect(samples).toHaveLength(20);
+    expect(new Set(samples.map((sample) => sample.scenario_id)).size).toBe(20);
+    await page.getByLabel("Scenario selection").selectOption(samples[4].scenario_id);
+    await expect(page.getByLabel("Investigation question")).toHaveValue(samples[4].question);
+  });
+
   test("records a review decision and exports it as a separate artifact", async ({ page }) => {
     await page.goto("/demo/review.html");
     const packet = {
